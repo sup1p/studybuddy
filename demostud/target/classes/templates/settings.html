@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Settings</title>
+  <link rel="stylesheet" href="src/main/resources/css/style1.css">
+</head>
+<body>
+<h1>Settings</h1>
+<form th:action="@{/settings/{id}(id=${settings.id})}" th:object="${settings}" method="post">
+
+  <p>Nickname:
+    <input type="text" id="nicknameField" th:value="${currentUsername}" disabled/>
+    <button onclick="editNickname()">Edit</button>
+    <button onclick="saveNickname()">Save</button>
+  </p>
+
+  <label>System language</label>
+  <select th:field="*{language}">
+    <option value="English">English</option>
+    <option value="Russian">Russian</option>
+  </select>
+
+  <label>Date of birth</label>
+  <input type="date" th:field="*{dateOfBirth}" />
+
+  <label>Country</label>
+  <select th:field="*{country}">
+    <option value="Kazakhstan">Kazakhstan</option>
+    <option value="Russia">Russia</option>
+    <option value="Ukraine">Ukraine</option>
+  </select>
+
+  <button type="submit">Save</button>
+</form>
+</body>
+</html>
