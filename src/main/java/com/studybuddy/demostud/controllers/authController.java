@@ -20,7 +20,7 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class authController {
 
-    private static final Logger logger = LoggerFactory.getLogger(controller.class);
+    private static final Logger logger = LoggerFactory.getLogger(mainController.class);
 
     @Autowired
     private UserRepository userRepository;

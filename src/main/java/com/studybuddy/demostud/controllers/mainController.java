@@ -1,6 +1,5 @@
 package com.studybuddy.demostud.controllers;
 
-import com.studybuddy.demostud.Config.LoginRequest;
 import com.studybuddy.demostud.models.User;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +16,9 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-public class controller {
+public class mainController {
 
-    private static final Logger logger = LoggerFactory.getLogger(controller.class);
+    private static final Logger logger = LoggerFactory.getLogger(mainController.class);
 
     @Autowired
     private UserRepository userRepository;

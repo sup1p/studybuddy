@@ -9,7 +9,10 @@ import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -20,28 +23,62 @@ public class UserService {
     @Autowired
     private FriendsRequestRepository friendsRequestRepository;
 
-    public List<User> getFriends(Long userId) {
+    public Set<User> getFriends(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return user.getFriends();
     }
 
-    public void sendFriendsRequest(Long senderId, String receiverUsername){
+    public void deleteFriendRequest(Long requestId, Long userId) {
+        FriendRequest friendRequest = friendsRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Friend request not found"));
+
+        if (!friendRequest.getSender().getId().equals(userId)) {
+            throw new RuntimeException("You can only delete requests sent by you");
+        }
+
+        friendsRequestRepository.delete(friendRequest);
+    }
+
+    public void sendFriendsRequest(Long senderId, String receiverUsername) {
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new RuntimeException("Sender not found"));
         User receiver = userRepository.findByUsername(receiverUsername)
                 .orElseThrow(() -> new RuntimeException("Receiver not found"));
 
-        if (friendsRequestRepository.findBySenderAndReceiver(sender, receiver).isPresent()) {
-            throw new RuntimeException("Friends request is already sent");
+        List<RequestStatus> blockingStatuses = Arrays.asList(RequestStatus.PENDING, RequestStatus.ACCEPTED);
+
+
+        // Fetch the existing friend request between sender and receiver
+        Optional<FriendRequest> existingRequest = friendsRequestRepository.findTopBySenderAndReceiverOrderByIdDesc(sender,receiver);
+
+        if (existingRequest.isPresent()) {
+            FriendRequest friendRequest = existingRequest.get();
+
+            // Debugging: Print the status for verification
+            System.out.println("Existing friend request status: " + friendRequest.getStatus());
+
+            // Check if the status is PENDING or ACCEPTED
+            if (friendRequest.getStatus() == RequestStatus.PENDING) {
+                throw new RuntimeException("Friend request is already sent and is pending approval.");
+            }
+            if (friendRequest.getStatus() == RequestStatus.ACCEPTED) {
+                throw new RuntimeException("Friend request is already sent and has been accepted.");
+            }
         }
 
-        FriendRequest friendRequest = new FriendRequest();
-        friendRequest.setSender(sender);
-        friendRequest.setReceiver(receiver);
-        friendRequest.setStatus(RequestStatus.PENDING);
-        friendsRequestRepository.save(friendRequest);
+        // If no blocking request exists, create a new request
+        FriendRequest newRequest = new FriendRequest();
+        newRequest.setSender(sender);
+        newRequest.setReceiver(receiver);
+        newRequest.setStatus(RequestStatus.PENDING); // Set initial status
+        friendsRequestRepository.save(newRequest);
+
+        System.out.println("New friend request created with status: PENDING");
     }
+
+
+
 
     public List<FriendRequest> getRequestFromMe(Long userId) {
         User sender = userRepository.findById(userId)
@@ -87,6 +124,27 @@ public class UserService {
         // Update request status to REJECTED
         request.setStatus(RequestStatus.REJECTED);
         friendsRequestRepository.save(request);
+    }
+
+    public void deleteFriend(Long userId, Long friendId) {
+        // Fetch the user and the friend
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        User friend = userRepository.findById(friendId)
+                .orElseThrow(() -> new RuntimeException("Friend not found"));
+
+        // Check if they are friends
+        if (!user.getFriends().contains(friend)) {
+            throw new RuntimeException("The users are not friends");
+        }
+
+        // Remove all occurrences of the friend (if duplicate friendships exist)
+        user.getFriends().removeIf(f -> f.getId().equals(friendId));
+        friend.getFriends().removeIf(f -> f.getId().equals(userId));
+
+        // Save both entities to update the join table
+        userRepository.save(user);
+        userRepository.save(friend);
     }
 }
 

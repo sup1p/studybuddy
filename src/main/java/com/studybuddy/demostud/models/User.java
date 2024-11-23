@@ -3,8 +3,10 @@ package com.studybuddy.demostud.models;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.HashSet;
+
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -29,13 +31,13 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "friend_id")
     )
-    private List<User> friends = new ArrayList<>(); // List of friends
+    private Set<User> friends = new HashSet<>();
 
-    public List<User> getFriends() {
+    public Set<User> getFriends() {
         return friends;
     }
 
-    public void setFriends(List<User> friends) {
+    public void setFriends(Set<User> friends) {
         this.friends = friends;
     }
 
