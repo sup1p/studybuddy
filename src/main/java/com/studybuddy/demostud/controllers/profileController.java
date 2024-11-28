@@ -1,20 +1,24 @@
 package com.studybuddy.demostud.controllers;
 
+import com.studybuddy.demostud.DTOs.UserSubDisciplineResponse;
+import com.studybuddy.demostud.Service.LanguageService;
 import com.studybuddy.demostud.Service.UserService;
-import com.studybuddy.demostud.models.FriendRequest;
+import com.studybuddy.demostud.models.Language;
 import com.studybuddy.demostud.models.User;
+import com.studybuddy.demostud.models.disciplines_package.SubDiscipline;
+import com.studybuddy.demostud.models.disciplines_package.UserSubDiscipline;
+import com.studybuddy.demostud.repository.DissciplineRepostory.SubDisciplineRepository;
+import com.studybuddy.demostud.repository.DissciplineRepostory.UserSubDisciplineRepository;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -22,100 +26,165 @@ public class profileController {
 
     private static final Logger logger = LoggerFactory.getLogger(mainController.class);
 
-
     @Autowired
-    private UserService userService;
+    private LanguageService languageService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final SubDisciplineRepository subDisciplineRepository;
+    private final UserRepository userRepository;
+    private final UserSubDisciplineRepository userSubDisciplineRepository;
 
-    @GetMapping("/{username}")
-    public ResponseEntity<User> getUserProfile(@PathVariable String username) {
-        logger.info("GET /profile/{} called", username);
-        Optional<User> user = userRepository.findByUsername(username);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public profileController(UserRepository userRepository, UserSubDisciplineRepository userSubDisciplineRepository, SubDisciplineRepository subDisciplineRepository) {
+        this.userRepository = userRepository;
+        this.userSubDisciplineRepository = userSubDisciplineRepository;
+        this.subDisciplineRepository = subDisciplineRepository;
     }
-    // Эндпоинт для способностей
-    @GetMapping("/{username}/skills")
-    public ResponseEntity<List<String>> getUserSkills(@PathVariable Long username) {
-        // Замените на реальную логику получения данных
-        List<String> skills = List.of("Java", "Spring", "React");
-        return ResponseEntity.ok(skills);
-    }
+
 
     // Эндпоинт для проектов
-    @GetMapping("/{username}/projects")
-    public ResponseEntity<List<String>> getUserProjects(@PathVariable Long username) {
+    @GetMapping("/{userId}/projects")
+    public ResponseEntity<List<String>> getUserProjects(@PathVariable Long userId) {
         // Замените на реальную логику получения данных
         List<String> projects = List.of("Project 1", "Project 2", "Project 3");
         return ResponseEntity.ok(projects);
     }
 
-
-    // Get list of friends
-    @GetMapping("/{userId}/friends")
-    public ResponseEntity<Set<User>> getFriends(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getFriends(userId));
+    //NICKNAME
+    @GetMapping("/{userId}/nickname")
+    public ResponseEntity<String> getUserNickname(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(user.getUsername());
     }
 
-    @DeleteMapping("/{userId}/friends/{friendId}/delete")
-    public ResponseEntity<String> deleteFriend(@PathVariable Long userId, @PathVariable Long friendId){
-        userService.deleteFriend(userId,friendId);
-        return ResponseEntity.ok("Friendship deleted successfully");
+    //ABOUT
+    @GetMapping(value = "/{userId}/about", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> getUserAbout(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(user.getAbout());
     }
 
-    // Send a friend request by username
-    @PostMapping("/{userId}/send-request")
-    public ResponseEntity<String> sendFriendRequest(
+
+    @PutMapping("/{userId}/about/edit")
+    public ResponseEntity<String> updateUserAbout(
             @PathVariable Long userId,
-            @RequestBody Map<String, String> requestBody) {
-        String username = requestBody.get("username");
+            @RequestBody Map<String, String> updatedAbout) {
 
-        // Fetch the sender (userId) from the repository
-        User sender = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        // Check if the user is trying to send a request to themselves
-        if (sender.getUsername().equals(username)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You cannot send a friend request to yourself");
+        String about = updatedAbout.get("about");
+        if (about == null || about.isBlank()) {
+            return new ResponseEntity<>("Поле 'about' не может быть пустым.", HttpStatus.BAD_REQUEST);
         }
 
-        // Delegate to the service to handle the business logic
-        userService.sendFriendsRequest(userId, username); // Assuming this already handles further validations
-        return ResponseEntity.status(HttpStatus.CREATED).body("Friend request sent");
+        // Обновляем и сохраняем
+        user.setAbout(about);
+        userRepository.save(user);
+
+        return new ResponseEntity<>("Биография пользователя обновлена успешно.", HttpStatus.OK);
     }
 
-
-    // Get requests sent by the user
-    @GetMapping("/{userId}/requests/from-me")
-    public ResponseEntity<List<FriendRequest>> getRequestsFromMe(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getRequestFromMe(userId));
+    //LANGUAGE
+    @GetMapping("/{userId}/language")
+    public ResponseEntity<Set<Language>> getLanguages(@PathVariable Long userId) {
+        return ResponseEntity.ok(languageService.getLanguages(userId));
     }
 
-    // Get requests received by the user
-    @GetMapping("/{userId}/requests/to-me")
-    public ResponseEntity<List<FriendRequest>> getRequestsToMe(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getRequestsToMe(userId));
+    @PostMapping("/{userId}/language/add")
+    public ResponseEntity<String> addLanguageToUser(@PathVariable Long userId, @RequestBody Language language) {
+        try {
+            languageService.addLanguageToUser(userId, language.getLanguageName());
+            return ResponseEntity.ok("Язык успешно добавлен пользователю!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка: " + e.getMessage());
+        }
     }
 
-    // Accept a friend request
-    @PostMapping("/requests/{requestId}/accept")
-    public ResponseEntity<String> acceptFriendRequest(@PathVariable Long requestId) {
-        userService.acceptFriendRequest(requestId);
-        return ResponseEntity.ok("Friend request accepted");
+    @DeleteMapping("/{userId}/language/delete")
+    public ResponseEntity<String> deleteLanguage(@PathVariable Long userId, @RequestBody Map<String, String> requestBody) {
+        try {
+            String languageName = requestBody.get("languageName");
+            if (languageName == null) {
+                throw new IllegalArgumentException("Language name is missing");
+            }
+            languageService.deleteLanguageFromUser(userId, languageName);
+            return ResponseEntity.ok("Язык успешно удалён!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка: " + e.getMessage());
+        }
     }
 
-    // Decline a friend request
-    @PostMapping("/requests/{requestId}/decline")
-    public ResponseEntity<String> declineFriendRequest(@PathVariable Long requestId) {
-        userService.declineFriendRequest(requestId);
-        return ResponseEntity.ok("Friend request declined");
+    //ACADEMIC_SKILLS
+    @GetMapping("/{userId}/discipline")
+    public ResponseEntity<List<UserSubDisciplineResponse>> getSkills(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<UserSubDiscipline> userSubDisciplines = userSubDisciplineRepository.findByUserId(userId);
+
+        if (userSubDisciplines.isEmpty())
+            return ResponseEntity.ok(Collections.emptyList());
+
+        List<UserSubDisciplineResponse> response = userSubDisciplines.stream()
+                .map(userSubDiscipline -> new UserSubDisciplineResponse(
+                        userSubDiscipline.getSubDiscipline().getId(),
+                        userSubDiscipline.getSubDiscipline().getName(),
+                        userSubDiscipline.getSubDiscipline().getCategory().getName(),
+                        userSubDiscipline.getSkillLevel()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/{userId}/discipline/add")
+    public ResponseEntity<String> addDisciplineToUser(
+            @PathVariable Long userId, @RequestBody Map<String,String> requestBody) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        SubDiscipline subDiscipline = subDisciplineRepository.findById(Long.parseLong(requestBody.get("subDisciplineId")))
+                .orElseThrow(() -> new RuntimeException("Sub-discipline not found"));
+
+
+        if(userSubDisciplineRepository.findByUserIdAndSubDisciplineId(userId, Long.valueOf(requestBody.get("subDisciplineId"))).isPresent())
+            return ResponseEntity.ok("You already have that discipline, it would be better if you will just edit it");
+
+        String skillLevel = requestBody.get("skillLevel");
+        UserSubDiscipline userSubDiscipline = new UserSubDiscipline();
+        userSubDiscipline.setUser(user);
+        userSubDiscipline.setSubDiscipline(subDiscipline);
+        userSubDiscipline.setSkillLevel(skillLevel);
+
+        userSubDisciplineRepository.save(userSubDiscipline);
+        return ResponseEntity.ok("Sub-Discipline added successfully");
     }
 
-    @DeleteMapping("/requests/{requestId}/delete")
-    public ResponseEntity<String> deleteFriendRequest(@PathVariable Long requestId, @RequestParam Long senderId) {
-        userService.deleteFriendRequest(requestId, senderId);
-        return ResponseEntity.ok("Friend request deleted");
+    @PutMapping("/{userId}/discipline/edit")
+    public ResponseEntity<String> editUserDiscipline(
+            @PathVariable Long userId, @RequestParam Long subDisciplineId, @RequestBody Map<String,String> updatedSkillLevel) {
+    UserSubDiscipline userSubDiscipline = userSubDisciplineRepository.findByUserIdAndSubDisciplineId(userId,subDisciplineId)
+            .orElseThrow(() -> new RuntimeException("Sub-discipline not found for this user"));
+
+        String skillLevel = updatedSkillLevel.get("skillLevel");
+        if (skillLevel == null || skillLevel.isBlank()) {
+            return new ResponseEntity<>("Поле 'skillLevel' не может быть пустым.", HttpStatus.BAD_REQUEST);
+        }
+
+        userSubDiscipline.setSkillLevel(skillLevel);
+        userSubDisciplineRepository.save(userSubDiscipline);
+
+        return new ResponseEntity<>("Способности пользователя обновлены успешно.", HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{userId}/discipline/delete")
+    public ResponseEntity<String> deleteUserDiscipline(
+            @PathVariable Long userId, @RequestParam Long subDisciplineId) {
+        List<UserSubDiscipline> userSubDiscipline = userSubDisciplineRepository.findAllByUserIdAndSubDisciplineId(userId, subDisciplineId);
+
+
+        userSubDisciplineRepository.deleteAll(userSubDiscipline);
+        return ResponseEntity.ok("Sub-Discipline removed successfully");
     }
 
 }

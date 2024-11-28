@@ -1,4 +1,4 @@
-package com.studybuddy.demostud.Config;
+package com.studybuddy.demostud.models;
 
 public class LoginRequest {
     private String email;

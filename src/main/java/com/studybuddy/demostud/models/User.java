@@ -19,11 +19,10 @@ public class User {
     private String username;
     private String password;
     private String email;
-    private String language;
+    private String system_language;
     private LocalDate dateOfBirth;
     private String country;
-
-
+    private String about;
 
     @ManyToMany
     @JoinTable(
@@ -33,6 +32,31 @@ public class User {
     )
     private Set<User> friends = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "user_languages",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "language", referencedColumnName = "languageName")
+    )
+    private Set<Language> languages = new HashSet<>();
+
+
+    public Set<Language> getLanguages() {
+        return languages;
+    }
+
+    public void setLanguages(Set<Language> languages) {
+        this.languages = languages;
+    }
+
+    public String getAbout() {
+        return about;
+    }
+
+    public void setAbout(String about) {
+        this.about = about;
+    }
+
     public Set<User> getFriends() {
         return friends;
     }
@@ -41,12 +65,12 @@ public class User {
         this.friends = friends;
     }
 
-    public String getLanguage() {
-        return language;
+    public String getSystem_language() {
+        return system_language;
     }
 
-    public void setLanguage(String language) {
-        this.language = language;
+    public void setSystem_language(String system_language) {
+        this.system_language = system_language;
     }
 
     public LocalDate getDateOfBirth() {
