@@ -2,6 +2,7 @@ package com.studybuddy.demostud.controllers;
 
 import com.studybuddy.demostud.Config.JwtUtils;
 import com.studybuddy.demostud.DTOs.LoginResponse;
+import com.studybuddy.demostud.DTOs.RegisterRequest;
 import com.studybuddy.demostud.models.LoginRequest;
 import com.studybuddy.demostud.models.Role;
 import com.studybuddy.demostud.models.User;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -58,21 +60,32 @@ public class MainController {
     }
 //REGISTER
     @PostMapping("/auth/register")
-    public ResponseEntity<String> registerUser(@RequestBody User user) {
+    public ResponseEntity<String> registerUser(@RequestBody RegisterRequest registerRequest) {
 
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+        // Проверяем, есть ли уже пользователь с таким именем
+        if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
             return new ResponseEntity<>("Username is already taken.", HttpStatus.BAD_REQUEST);
         }
 
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+        // Проверяем, есть ли уже пользователь с такой почтой
+        if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
             return new ResponseEntity<>("Email is already taken.", HttpStatus.BAD_REQUEST);
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRoles(Set.of((Role) roleRepository.findByRoleName("ROLE_USER")));
+        // Создаём объект User и заполняем его данными из DTO
+        User user = new User();
+        user.setUsername(registerRequest.getUsername());
+        user.setEmail(registerRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+
+        Role role = roleRepository.findByRoleName("ROLE_USER")
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+        user.setRoles(Set.of(role));
+
+        // Сохраняем пользователя
         userRepository.save(user);
 
-        return new ResponseEntity<>("User registered succsesfully. ", HttpStatus.OK );
+        return new ResponseEntity<>("User registered successfully.", HttpStatus.OK);
     }
 
     @PostMapping("/auth/login")
