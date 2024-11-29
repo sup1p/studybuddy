@@ -7,14 +7,16 @@ import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@RestController
+@RequestMapping("/user/friends") // Ensure all endpoints fall under /user/** for ROLE_USER and ROLE_ADMIN
 public class FriendController {
-
 
     @Autowired
     private UserService userService;
@@ -22,28 +24,29 @@ public class FriendController {
     @Autowired
     private UserRepository userRepository;
 
-
-    @GetMapping("/{userId}/friends")
-    public ResponseEntity<Set<User>> getFriends(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getFriends(userId));
+    // Get all friends of the authenticated user
+    @GetMapping("/friends")
+    public ResponseEntity<Set<User>> getFriends() {
+        // Get the currently authenticated user
+        User authenticatedUser = getAuthenticatedUser();
+        return ResponseEntity.ok(userService.getFriends(authenticatedUser.getId()));
     }
 
-    @DeleteMapping("/{userId}/friends/{friendId}/delete")
-    public ResponseEntity<String> deleteFriend(@PathVariable Long userId, @PathVariable Long friendId){
-        userService.deleteFriend(userId,friendId);
+    // Delete a friend for the authenticated user
+    @DeleteMapping("/friends/{friendId}")
+    public ResponseEntity<String> deleteFriend(@PathVariable Long friendId) {
+        User authenticatedUser = getAuthenticatedUser();
+        userService.deleteFriend(authenticatedUser.getId(), friendId);
         return ResponseEntity.ok("Friendship deleted successfully");
     }
 
-    // Send a friend request by username
-    @PostMapping("/{userId}/send-request")
-    public ResponseEntity<String> sendFriendRequest(
-            @PathVariable Long userId,
-            @RequestBody Map<String, String> requestBody) {
+    // Send a friend request to another user by username
+    @PostMapping("friends/send-request")
+    public ResponseEntity<String> sendFriendRequest(@RequestBody Map<String, String> requestBody) {
         String username = requestBody.get("username");
 
-        // Fetch the sender (userId) from the repository
-        User sender = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
+        // Get the currently authenticated user
+        User sender = getAuthenticatedUser();
 
         // Check if the user is trying to send a request to themselves
         if (sender.getUsername().equals(username)) {
@@ -51,40 +54,51 @@ public class FriendController {
         }
 
         // Delegate to the service to handle the business logic
-        userService.sendFriendsRequest(userId, username); // Assuming this already handles further validations
+        userService.sendFriendsRequest(sender.getId(), username);
         return ResponseEntity.status(HttpStatus.CREATED).body("Friend request sent");
     }
 
-
-    // Get requests sent by the user
-    @GetMapping("/{userId}/requests/from-me")
-    public ResponseEntity<List<FriendRequest>> getRequestsFromMe(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getRequestFromMe(userId));
+    // Get requests sent by the authenticated user
+    @GetMapping("friends/requests/from-me")
+    public ResponseEntity<List<FriendRequest>> getRequestsFromMe() {
+        User authenticatedUser = getAuthenticatedUser();
+        return ResponseEntity.ok(userService.getRequestFromMe(authenticatedUser.getId()));
     }
 
-    // Get requests received by the user
-    @GetMapping("/{userId}/requests/to-me")
-    public ResponseEntity<List<FriendRequest>> getRequestsToMe(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getRequestsToMe(userId));
+    // Get requests received by the authenticated user
+    @GetMapping("friends/requests/to-me")
+    public ResponseEntity<List<FriendRequest>> getRequestsToMe() {
+        User authenticatedUser = getAuthenticatedUser();
+        return ResponseEntity.ok(userService.getRequestsToMe(authenticatedUser.getId()));
     }
 
     // Accept a friend request
-    @PostMapping("/requests/{requestId}/accept")
+    @PostMapping("friends/requests/{requestId}/accept")
     public ResponseEntity<String> acceptFriendRequest(@PathVariable Long requestId) {
         userService.acceptFriendRequest(requestId);
         return ResponseEntity.ok("Friend request accepted");
     }
 
     // Decline a friend request
-    @PostMapping("/requests/{requestId}/decline")
+    @PostMapping("friends/requests/{requestId}/decline")
     public ResponseEntity<String> declineFriendRequest(@PathVariable Long requestId) {
         userService.declineFriendRequest(requestId);
         return ResponseEntity.ok("Friend request declined");
     }
 
-    @DeleteMapping("/requests/{requestId}/delete")
-    public ResponseEntity<String> deleteFriendRequest(@PathVariable Long requestId, @RequestParam Long senderId) {
-        userService.deleteFriendRequest(requestId, senderId);
+    // Delete a friend request sent or received
+    @DeleteMapping("friends/requests/{requestId}/delete")
+    public ResponseEntity<String> deleteFriendRequest(@PathVariable Long requestId) {
+        User authenticatedUser = getAuthenticatedUser();
+        userService.deleteFriendRequest(requestId, authenticatedUser.getId());
         return ResponseEntity.ok("Friend request deleted");
     }
+
+    // Helper method to get the authenticated user
+    private User getAuthenticatedUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+    }
 }
+

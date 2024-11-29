@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping("/user/chat")
 public class ChatController {
 
     @Autowired
