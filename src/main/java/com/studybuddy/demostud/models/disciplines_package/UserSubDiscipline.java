@@ -20,7 +20,7 @@ public class UserSubDiscipline {
     @JoinColumn(name = "sub_discipline_id")
     private SubDiscipline subDiscipline;
 
-    private String skillLevel;
+    private int skillLevel;
 
     public Long getId() {
         return id;
@@ -46,11 +46,11 @@ public class UserSubDiscipline {
         this.subDiscipline = subDiscipline;
     }
 
-    public String getSkillLevel() {
+    public int getSkillLevel() {
         return skillLevel;
     }
 
-    public void setSkillLevel(String skillLevel) {
+    public void setSkillLevel(int skillLevel) {
         this.skillLevel = skillLevel;
     }
 }

@@ -91,7 +91,7 @@ public class MainController {
     @PostMapping("/auth/login")
     public ResponseEntity<?> LoginUser(@RequestBody LoginRequest loginRequest) {
         try {
-            // Authenticate the user
+            // Authenticate the user 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getEmail(), loginRequest.getPassword()
@@ -141,20 +141,4 @@ public class MainController {
         return new ResponseEntity<>("User account deleted successfully.", HttpStatus.OK);
 
     }
-
-    // SEARCH(DONT WORK)
-    @GetMapping("/search")
-    public ResponseEntity<List<User>> searchUsers(@RequestParam String query) {
-        logger.info("GET /search called with query: " + query);
-        List<User> users = userRepository.findByUsernameContainingIgnoreCase(query);
-        return new ResponseEntity<>(users, HttpStatus.OK);
-    }
-
-    @GetMapping("/search/results")
-    public ResponseEntity<List<User>> getSearchResults(@RequestParam String query) {
-        logger.info("GET /search/results called with query: " + query);
-        List<User> users = userRepository.findByUsernameContainingIgnoreCase(query);
-        return new ResponseEntity<>(users, HttpStatus.OK);
-    }
-
 }

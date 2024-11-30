@@ -147,7 +147,7 @@ public class ProfileController {
             return ResponseEntity.ok("You already have that discipline, it would be better if you will just edit it");
         }
 
-        String skillLevel = requestBody.get("skillLevel");
+        int skillLevel = Integer.parseInt(requestBody.get("skillLevel"));
         UserSubDiscipline userSubDiscipline = new UserSubDiscipline();
         userSubDiscipline.setUser(user);
         userSubDiscipline.setSubDiscipline(subDiscipline);
@@ -159,19 +159,18 @@ public class ProfileController {
 
     @PutMapping("/discipline/edit")
     public ResponseEntity<String> editUserDiscipline(
-            @RequestParam Long subDisciplineId, @RequestBody Map<String, String> updatedSkillLevel) {
+            @RequestParam Long subDisciplineId, @RequestBody int updatedSkillLevel) {
         User user = getAuthenticatedUser();
 
         UserSubDiscipline userSubDiscipline = userSubDisciplineRepository.findByUserIdAndSubDisciplineId(
                         user.getId(), subDisciplineId)
                 .orElseThrow(() -> new RuntimeException("Sub-discipline not found for this user"));
 
-        String skillLevel = updatedSkillLevel.get("skillLevel");
-        if (skillLevel == null || skillLevel.isBlank()) {
-            return new ResponseEntity<>("Поле 'skillLevel' не может быть пустым.", HttpStatus.BAD_REQUEST);
+        if (updatedSkillLevel == 0) {
+            return new ResponseEntity<>("Поле 'skillLevel' не может быть равно 0.", HttpStatus.BAD_REQUEST);
         }
 
-        userSubDiscipline.setSkillLevel(skillLevel);
+        userSubDiscipline.setSkillLevel(updatedSkillLevel);
         userSubDisciplineRepository.save(userSubDiscipline);
         return new ResponseEntity<>("Способности пользователя обновлены успешно.", HttpStatus.OK);
     }

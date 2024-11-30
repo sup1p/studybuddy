@@ -4,9 +4,9 @@ public class UserSubDisciplineResponse {
     private Long subDisciplineId;
     private String subDisciplineName;
     private String category;
-    private String skillLevel;
+    private int skillLevel;
 
-    public UserSubDisciplineResponse(Long subDisciplineId, String subDisciplineName, String category, String skillLevel) {
+    public UserSubDisciplineResponse(Long subDisciplineId, String subDisciplineName, String category, int skillLevel) {
         this.subDisciplineId = subDisciplineId;
         this.subDisciplineName = subDisciplineName;
         this.category = category;
@@ -37,11 +37,11 @@ public class UserSubDisciplineResponse {
         this.category = category;
     }
 
-    public String getSkillLevel() {
+    public int getSkillLevel() {
         return skillLevel;
     }
 
-    public void setSkillLevel(String skillLevel) {
+    public void setSkillLevel(int skillLevel) {
         this.skillLevel = skillLevel;
     }
 }
