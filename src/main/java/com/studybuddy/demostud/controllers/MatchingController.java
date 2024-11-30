@@ -34,12 +34,12 @@ public class MatchingController {
         return ResponseEntity.ok(matches);
     }
 
-    @PostMapping("/search")
-    public ResponseEntity<List<MatchingResult>> searchMatchingPairs(
-            @RequestBody List<String> weakSubjects) {
-        User user = getAuthenticatedUser(); // Получаем текущего пользователя
-        List<MatchingResult> matches = matchingService.findMatchesWithWeakSubjects(user.getId(), weakSubjects);
-        return ResponseEntity.ok(matches);
-    }
+//    @PostMapping("/search")
+//    public ResponseEntity<List<MatchingResult>> searchMatchingPairs(
+//            @RequestBody List<String> weakSubjects) {
+//        User user = getAuthenticatedUser(); // Получаем текущего пользователя
+//        List<MatchingResult> matches = matchingService.findMatchesWithWeakSubjects(user.getId(), weakSubjects);
+//        return ResponseEntity.ok(matches);
+//    }
 }
 

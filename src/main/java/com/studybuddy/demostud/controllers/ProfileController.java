@@ -46,15 +46,8 @@ public class ProfileController {
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
     }
 
-//    // Projects
-//    @GetMapping("/projects")
-//    public ResponseEntity<List<String>> getUserProjects() {
-//        List<String> projects = List.of("Project 1", "Project 2", "Project 3");
-//        return ResponseEntity.ok(projects);
-//    }
-
     // Nickname
-    @GetMapping("/nickname")
+    @GetMapping("/all")
     public ResponseEntity<String> getUserNickname() {
         User user = getAuthenticatedUser();
         return ResponseEntity.ok(user.getUsername());

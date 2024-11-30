@@ -3,7 +3,7 @@ package com.studybuddy.demostud.controllers;
 import com.studybuddy.demostud.Config.JwtUtils;
 import com.studybuddy.demostud.DTOs.LoginResponse;
 import com.studybuddy.demostud.DTOs.RegisterRequest;
-import com.studybuddy.demostud.models.LoginRequest;
+import com.studybuddy.demostud.DTOs.LoginRequest;
 import com.studybuddy.demostud.models.Role;
 import com.studybuddy.demostud.models.User;
 import com.studybuddy.demostud.repository.RoleRepository;
@@ -20,8 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Optional;
+
 import java.util.Set;
 
 
@@ -76,6 +75,7 @@ public class MainController {
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
+        user.setGender(registerRequest.getGender());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
         Role role = roleRepository.findByRoleName("ROLE_USER")
@@ -90,7 +90,7 @@ public class MainController {
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> LoginUser(@RequestBody LoginRequest loginRequest) {
-        try {
+
             // Authenticate the user 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -101,21 +101,27 @@ public class MainController {
             // Get UserDetails from the Authentication object
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
+            User user = userRepository.findByEmail(loginRequest.getEmail())
+                    .orElseThrow(() -> new RuntimeException("не нашел почту такую мэн"));
+
             // Generate the JWT token
             String token = jwtUtils.generateToken(userDetails);
 
             // Return the token in the response
-            return ResponseEntity.ok(new LoginResponse(token));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
-        }
-    }
+            return ResponseEntity.ok(new LoginResponse(token,user.getUsername()));
 
-    // SETTINGS
-    @PutMapping("/settings/{userId}")
-    public ResponseEntity<String> updateUserSettings(@PathVariable String userId, @RequestBody User updatedSettings) {
-        logger.info("PUT /settings called/{}", userId);
+
+    }
+    @GetMapping("/settings/gender")
+    public ResponseEntity<String> showGender(){
         User user = getAuthenticatedUser();
+        return ResponseEntity.ok(user.getGender());
+    }
+    // SETTINGS
+    @PutMapping("/settings")
+    public ResponseEntity<String> updateUserSettings(@RequestBody User updatedSettings) {
+        logger.info("PUT /settings called");
+        User user = getAuthenticatedUser(); // Получаем текущего пользователя
 
         if (updatedSettings.getUsername() != null)
             user.setUsername(updatedSettings.getUsername());
@@ -132,13 +138,11 @@ public class MainController {
         return new ResponseEntity<>("User settings updated successfully.", HttpStatus.OK);
     }
 
-
-    @DeleteMapping("/settings/{userId}/delete")
-    public ResponseEntity<String> deleteUserAccount(@PathVariable Long userId) {
-        logger.info("DELETE /{}/delete called", userId);
-        User user = getAuthenticatedUser();
+    @DeleteMapping("/settings/delete")
+    public ResponseEntity<String> deleteUserAccount() {
+        logger.info("DELETE /settings/delete called");
+        User user = getAuthenticatedUser(); // Получаем текущего пользователя
         userRepository.delete(user);
         return new ResponseEntity<>("User account deleted successfully.", HttpStatus.OK);
-
     }
 }

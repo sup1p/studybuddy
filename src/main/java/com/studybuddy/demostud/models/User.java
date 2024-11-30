@@ -23,6 +23,7 @@ public class User {
     private LocalDate dateOfBirth;
     private String country;
     private String about;
+    private String gender;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -38,6 +39,14 @@ public class User {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
     @ManyToMany
