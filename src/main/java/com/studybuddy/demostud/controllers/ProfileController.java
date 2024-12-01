@@ -12,7 +12,6 @@ import com.studybuddy.demostud.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -42,24 +41,23 @@ public class ProfileController {
     // Helper method to get the authenticated user
     private User getAuthenticatedUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println(email);
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
     }
 
-    // Nickname
-    @GetMapping("/all")
-    public ResponseEntity<String> getUserNickname() {
+    // Combined GetMapping for Username, About, and Languages
+    @GetMapping("/details")
+    public ResponseEntity<Map<String, Object>> getUserDetails() {
         User user = getAuthenticatedUser();
-        return ResponseEntity.ok(user.getUsername());
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", user.getUsername());
+        response.put("about", user.getAbout());
+        response.put("languages", languageService.getLanguages(user.getId()));
+        return ResponseEntity.ok(response);
     }
 
     // About
-    @GetMapping(value = "/about", produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> getUserAbout() {
-        User user = getAuthenticatedUser();
-        return ResponseEntity.ok(user.getAbout());
-    }
-
     @PutMapping("/about/edit")
     public ResponseEntity<String> updateUserAbout(@RequestBody Map<String, String> updatedAbout) {
         User user = getAuthenticatedUser();
@@ -74,12 +72,6 @@ public class ProfileController {
     }
 
     // Languages
-    @GetMapping("/language")
-    public ResponseEntity<Set<Language>> getLanguages() {
-        User user = getAuthenticatedUser();
-        return ResponseEntity.ok(languageService.getLanguages(user.getId()));
-    }
-
     @PostMapping("/language/add")
     public ResponseEntity<String> addLanguageToUser(@RequestBody Language language) {
         User user = getAuthenticatedUser();
@@ -179,5 +171,3 @@ public class ProfileController {
         return ResponseEntity.ok("Sub-Discipline removed successfully");
     }
 }
-
-
