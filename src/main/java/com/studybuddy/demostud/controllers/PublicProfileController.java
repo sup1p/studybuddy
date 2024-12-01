@@ -33,17 +33,19 @@ public class PublicProfileController {
         this.userSubDisciplineRepository = userSubDisciplineRepository;
     }
 
-    // Получение базовой информации о пользователе
+    // Getting base info about user, who found by id
     @GetMapping("/{userId}")
     public ResponseEntity<Map<String, Object>> getUserProfile(@PathVariable Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        //counting his age
         int age = Period.between(user.getDateOfBirth(), LocalDate.now()).getYears();
-        // Формируем данные для ответа
+        // Forming data with map
         Map<String, Object> response = new HashMap<>();
         response.put("username", user.getUsername());
         response.put("age", age);
+        response.put("languages", user.getLanguages());
         response.put("country", user.getCountry());
         response.put("numberOfFriends", user.getFriends().size());
         response.put("about", user.getAbout());
@@ -52,17 +54,7 @@ public class PublicProfileController {
         return ResponseEntity.ok(response);
     }
 
-    // Получение языков пользователя
-    @GetMapping("/{userId}/languages")
-    public ResponseEntity<Set<Language>> getUserLanguages(@PathVariable Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Set<Language> languages = languageService.getLanguages(user.getId());
-        return ResponseEntity.ok(languages);
-    }
-
-    // Получение дисциплин пользователя
+    // Getting his disciplines
     @GetMapping("/{userId}/disciplines")
     public ResponseEntity<List<Map<String, Object>>> getUserDisciplines(@PathVariable Long userId) {
         List<UserSubDiscipline> userSubDisciplines = userSubDisciplineRepository.findByUserId(userId);
@@ -71,7 +63,7 @@ public class PublicProfileController {
             return ResponseEntity.ok(List.of());
         }
 
-        // Преобразуем дисциплины в список Map для ответа
+        // Making all data to Map to answer
         List<Map<String, Object>> response = userSubDisciplines.stream()
                 .map(userSubDiscipline -> {
                     Map<String, Object> discipline = new HashMap<>();

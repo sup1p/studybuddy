@@ -24,52 +24,51 @@ public class FriendController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping("/show")
+    @GetMapping("/show")//returns every friend of user
     public ResponseEntity<List<FriendsInfo>> getFriends() {
-        // Get the currently authenticated user
-        User authenticatedUser = getAuthenticatedUser();
+        User authenticatedUser = getAuthenticatedUser(); // in the bottom stays method for getting user and checking him for authentification
         return ResponseEntity.ok(userService.getFriends(authenticatedUser.getId()));
     }
 
-    @DeleteMapping("/delete/{friendId}")
+    @DeleteMapping("/delete/{friendId}")// mapping for delete friends by his id
     public ResponseEntity<String> deleteFriend(@PathVariable Long friendId) {
         User authenticatedUser = getAuthenticatedUser();
-        userService.deleteFriend(authenticatedUser.getId(), friendId);
+        userService.deleteFriend(authenticatedUser.getId(), friendId);  //current users id and being deleted friends id
         return ResponseEntity.ok("Friendship deleted successfully");
     }
 
-    @PostMapping("/send-request")
+    @PostMapping("/send-request")  // send request of friendship to user, by his username
     public ResponseEntity<String> sendFriendRequest(@RequestBody Map<String, String> requestBody) {
-        String username = requestBody.get("username");
-        User sender = getAuthenticatedUser();
+        String username = requestBody.get("username"); // getting username in json for which we are sending request
+        User sender = getAuthenticatedUser();  //current user
 
         if (sender.getUsername().equals(username)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You cannot send a friend request to yourself");
-        }
+        } // check for not send request to myself
 
-        userService.sendFriendsRequest(sender.getId(), username);
+        userService.sendFriendsRequest(sender.getId(), username);  //sending request by current users id and receivers username
         return ResponseEntity.status(HttpStatus.CREATED).body("Friend request sent");
     }
 
-    @GetMapping("/requests/from-me")
+    @GetMapping("/requests/from-me")  // get list of requests that i send to others
     public ResponseEntity<List<FriendRequestResponse>> getRequestsFromMe() {
         User authenticatedUser = getAuthenticatedUser();
         return ResponseEntity.ok(userService.getRequestFromMe(authenticatedUser.getId()));
     }
 
-    @GetMapping("/requests/to-me")
+    @GetMapping("/requests/to-me") // get list of requests that was sent to me by others
     public ResponseEntity<List<FriendRequestResponse>> getRequestsToMe() {
         User authenticatedUser = getAuthenticatedUser();
         return ResponseEntity.ok(userService.getRequestsToMe(authenticatedUser.getId()));
     }
 
-    @PostMapping("/requests/{requestId}/accept")
+    @PostMapping("/requests/{requestId}/accept") // accepting specifical request sent to me by request's id
     public ResponseEntity<String> acceptFriendRequest(@PathVariable Long requestId) {
         userService.acceptFriendRequest(requestId);
         return ResponseEntity.ok("Friend request accepted");
     }
 
-    @PostMapping("/requests/{requestId}/decline")
+    @PostMapping("/requests/{requestId}/decline")// rejecting specifical request sent to me by request's id
     public ResponseEntity<String> declineFriendRequest(@PathVariable Long requestId) {
         userService.declineFriendRequest(requestId);
         return ResponseEntity.ok("Friend request declined");
@@ -82,7 +81,7 @@ public class FriendController {
         return ResponseEntity.ok("Friend request deleted");
     }
 
-    private User getAuthenticatedUser() {
+    private User getAuthenticatedUser() {  // helper for authenticate check  and find them by email
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));

@@ -1,5 +1,6 @@
 package com.studybuddy.demostud.controllers;
 
+import com.studybuddy.demostud.DTOs.SkillUpdateRequest;
 import com.studybuddy.demostud.DTOs.UserSubDisciplineResponse;
 import com.studybuddy.demostud.Service.LanguageService;
 import com.studybuddy.demostud.models.Language;
@@ -46,7 +47,7 @@ public class ProfileController {
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
     }
 
-    // Combined GetMapping for Username, About, and Languages
+    // Combined GetMapping for Username About  and Languages
     @GetMapping("/details")
     public ResponseEntity<Map<String, Object>> getUserDetails() {
         User user = getAuthenticatedUser();
@@ -57,7 +58,7 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
-    // About
+    // About editing
     @PutMapping("/about/edit")
     public ResponseEntity<String> updateUserAbout(@RequestBody Map<String, String> updatedAbout) {
         User user = getAuthenticatedUser();
@@ -71,7 +72,7 @@ public class ProfileController {
         return new ResponseEntity<>("Биография пользователя обновлена успешно.", HttpStatus.OK);
     }
 
-    // Languages
+    // Languages adding
     @PostMapping("/language/add")
     public ResponseEntity<String> addLanguageToUser(@RequestBody Language language) {
         User user = getAuthenticatedUser();
@@ -82,7 +83,7 @@ public class ProfileController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка: " + e.getMessage());
         }
     }
-
+    //language deleting
     @DeleteMapping("/language/delete")
     public ResponseEntity<String> deleteLanguage(@RequestBody Map<String, String> requestBody) {
         User user = getAuthenticatedUser();
@@ -98,45 +99,52 @@ public class ProfileController {
         }
     }
 
-    // Academic Skills (Disciplines)
+    // return user's academic skills(disciplines)
     @GetMapping("/discipline")
     public ResponseEntity<List<UserSubDisciplineResponse>> getSkills() {
         User user = getAuthenticatedUser();
-        List<UserSubDiscipline> userSubDisciplines = userSubDisciplineRepository.findByUserId(user.getId());
+        List<UserSubDiscipline> userSubDisciplines = userSubDisciplineRepository.findByUserId(user.getId());  //find userSubdisciplines by users id
 
         if (userSubDisciplines.isEmpty()) {
             return ResponseEntity.ok(Collections.emptyList());
-        }
+        } //if user havent filled it yet, return emptyList
 
         List<UserSubDisciplineResponse> response = userSubDisciplines.stream()
-                .sorted(Comparator.comparing(UserSubDiscipline::getSkillLevel).reversed())
+                .sorted(Comparator.comparing(UserSubDiscipline::getSkillLevel).reversed())  //sort by skillLevel in descending order
                 .map(userSubDiscipline -> new UserSubDisciplineResponse(
                         userSubDiscipline.getSubDiscipline().getId(),
                         userSubDiscipline.getSubDiscipline().getName(),
                         userSubDiscipline.getSubDiscipline().getCategory().getName(),
                         userSubDiscipline.getSkillLevel()
                 ))
-                .toList();
+                .toList(); //created a list of blocks, where blocks filled with id and name of subdiscipline, and users skillLevel in it with category of that subdiscipline
 
         return ResponseEntity.ok(response);
     }
 
+
+    //endpoint for adding disciplines
     @PostMapping("/discipline/add")
     public ResponseEntity<String> addDisciplineToUser(@RequestBody Map<String, String> requestBody) {
         User user = getAuthenticatedUser();
 
+        //if that subdiscipline doesnt exists return runtime exception
         SubDiscipline subDiscipline = subDisciplineRepository.findById(Long.parseLong(requestBody.get("subDisciplineId")))
                 .orElseThrow(() -> new RuntimeException("Sub-discipline not found"));
 
+        //checking for already having that discipline
         if (userSubDisciplineRepository.findByUserIdAndSubDisciplineId(user.getId(),
                 Long.parseLong(requestBody.get("subDisciplineId"))).isPresent()) {
             return ResponseEntity.ok("You already have that discipline, it would be better if you will just edit it");
         }
 
+        //getting skillLevel, and assuming that it is a number between 1 and 10
         int skillLevel = Integer.parseInt(requestBody.get("skillLevel"));
         if (skillLevel > 10 || skillLevel<1){
             return ResponseEntity.ok("You cannot your proficiency level with that, please use numbers between 1 and 10");
         }
+
+        //saving user
         UserSubDiscipline userSubDiscipline = new UserSubDiscipline();
         userSubDiscipline.setUser(user);
         userSubDiscipline.setSubDiscipline(subDiscipline);
@@ -148,29 +156,37 @@ public class ProfileController {
 
     @PutMapping("/discipline/edit")
     public ResponseEntity<String> editUserDiscipline(
-            @RequestParam Long subDisciplineId, @RequestBody int updatedSkillLevel) {
+            @RequestParam Long subDisciplineId, @RequestBody SkillUpdateRequest request) {
         User user = getAuthenticatedUser();
 
+        // Find existing discipline
         UserSubDiscipline userSubDiscipline = userSubDisciplineRepository.findByUserIdAndSubDisciplineId(
                         user.getId(), subDisciplineId)
                 .orElseThrow(() -> new RuntimeException("Sub-discipline not found for this user"));
 
-        if (updatedSkillLevel == 0) {
-            return new ResponseEntity<>("Поле 'skillLevel' не может быть равно 0.", HttpStatus.BAD_REQUEST);
+        // Get level of skill
+        int updatedSkillLevel = request.getSkillLevel();
+
+        // Check for diapazon
+        if (updatedSkillLevel < 1 || updatedSkillLevel > 10) {
+            return new ResponseEntity<>("Skill level has to be between 1 and 10", HttpStatus.BAD_REQUEST);
         }
 
+        // save change
         userSubDiscipline.setSkillLevel(updatedSkillLevel);
         userSubDisciplineRepository.save(userSubDiscipline);
         return new ResponseEntity<>("Способности пользователя обновлены успешно.", HttpStatus.OK);
     }
 
+    //deleting mapping from user
     @DeleteMapping("/discipline/delete")
     public ResponseEntity<String> deleteUserDiscipline(@RequestParam Long subDisciplineId) {
         User user = getAuthenticatedUser();
 
-        List<UserSubDiscipline> userSubDiscipline = userSubDisciplineRepository.findAllByUserIdAndSubDisciplineId(
-                user.getId(), subDisciplineId);
+        //finding
+        List<UserSubDiscipline> userSubDiscipline = userSubDisciplineRepository.findAllByUserIdAndSubDisciplineId(user.getId(), subDisciplineId);
 
+        //deleting
         userSubDisciplineRepository.deleteAll(userSubDiscipline);
         return ResponseEntity.ok("Sub-Discipline removed successfully");
     }

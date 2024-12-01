@@ -57,21 +57,21 @@ public class MainController {
         logger.info("GET /homepage called");
         return new ResponseEntity<>("Welcome to the homepage!", HttpStatus.OK);
     }
-//REGISTER
+    //REGISTER endpoint
     @PostMapping("/auth/register")
     public ResponseEntity<String> registerUser(@RequestBody RegisterRequest registerRequest) {
 
-        // Проверяем, есть ли уже пользователь с таким именем
+        // check if user with same username exists
         if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
             return new ResponseEntity<>("Username is already taken.", HttpStatus.BAD_REQUEST);
         }
 
-        // Проверяем, есть ли уже пользователь с такой почтой
+        // check if user with same emmail exists
         if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
             return new ResponseEntity<>("Email is already taken.", HttpStatus.BAD_REQUEST);
         }
 
-        // Создаём объект User и заполняем его данными из DTO
+        // create object User and fill it with DTO "register request"
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
@@ -83,12 +83,12 @@ public class MainController {
                 .orElseThrow(() -> new RuntimeException("Role not found"));
         user.setRoles(Set.of(role));
 
-        // Сохраняем пользователя
+        // save user
         userRepository.save(user);
 
         return new ResponseEntity<>("User registered successfully.", HttpStatus.OK);
     }
-
+    // LOGIN ENDPOINT
     @PostMapping("/auth/login")
     public ResponseEntity<?> LoginUser(@RequestBody LoginRequest loginRequest) {
         try {
@@ -99,7 +99,7 @@ public class MainController {
                     )
             );
 
-            // Get UserDetails from the Authentication object
+            // Get user's UserDetails from the Authentication object
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
             User user = userRepository.findByEmail(loginRequest.getEmail())
@@ -108,7 +108,7 @@ public class MainController {
             // Generate the JWT token
             String token = jwtUtils.generateToken(userDetails);
 
-            // Return the token in the response
+            // Return the token with username in the response
             return ResponseEntity.ok(new LoginResponse(token, user.getUsername()));
 
         } catch (org.springframework.security.core.AuthenticationException e) {
@@ -116,16 +116,11 @@ public class MainController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Неверный email или пароль");
         } catch (Exception e) {
             // Catch any other exceptions that might occur
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Произошла ошибка. Пожалуйста, попробуйте позже.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("server's mistake");
         }
     }
 
 
-    @GetMapping("user/settings/gender")
-    public ResponseEntity<String> showGender(){
-        User user = getAuthenticatedUser();
-        return ResponseEntity.ok(user.getGender());
-    }
     // SETTINGS
     @PutMapping("user/settings")
     public ResponseEntity<String> updateUserSettings(@RequestBody User updatedSettings) {
@@ -143,11 +138,19 @@ public class MainController {
         if (updatedSettings.getSystem_language() != null)
             user.setSystem_language(updatedSettings.getSystem_language());
 
+        //logic is -> if place where user can type is not null, and something written, data changes
+
         userRepository.save(user);
         return new ResponseEntity<>("User settings updated successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("user/settings/delete")
+    @GetMapping("user/settings/gender") //show gender endpoint
+    public ResponseEntity<String> showGender(){
+        User user = getAuthenticatedUser();
+        return ResponseEntity.ok(user.getGender());
+    }
+
+    @DeleteMapping("user/settings/delete")  // account deleting mapping
     public ResponseEntity<String> deleteUserAccount() {
         logger.info("DELETE /settings/delete called");
         User user = getAuthenticatedUser(); // Получаем текущего пользователя

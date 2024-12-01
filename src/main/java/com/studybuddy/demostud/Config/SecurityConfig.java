@@ -28,17 +28,17 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login","/homepage").permitAll() // Allow these endpoints for unauthenticated users
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/auth/register", "/auth/login","/homepage").permitAll() // Allow these endpoints for everybody users
+                        .requestMatchers("/admin/**").hasRole("ADMIN") //only admin guys
+                        .requestMatchers("/user/**","/public/**").hasAnyRole("USER", "ADMIN") //for users, but admins can access too
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); //my JWT FILTER before standart password log filter
 
         return http.build();
     }
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
+    public BCryptPasswordEncoder passwordEncoder() { //method of crypting password
         return new BCryptPasswordEncoder();
     }
 
@@ -46,7 +46,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManagerBean(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-    }
+    } //for tokens
 }
 
 

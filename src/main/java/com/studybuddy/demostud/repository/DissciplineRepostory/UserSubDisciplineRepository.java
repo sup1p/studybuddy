@@ -68,7 +68,7 @@ public interface UserSubDisciplineRepository extends JpaRepository<UserSubDiscip
 
     @Query(value = """
         WITH match_scores AS (
-            SELECT 
+            SELECT
                 usd1.user_id AS student_1_id,
                 usd2.user_id AS student_2_id,
                 sd.name AS sub_discipline_name,
