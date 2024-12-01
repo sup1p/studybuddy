@@ -40,13 +40,6 @@ public class LanguageService {
         }
     }
 
-    //    public void deleteLanguage(String languageName) {
-//        Language language = languageRepository.findByLanguageName(languageName)
-//                .orElseThrow(() -> new RuntimeException("Язык не найден."));
-//
-//        // Delete the language
-//        languageRepository.delete(language);
-//    }
     public void deleteLanguageFromUser(Long userId, String languageName) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Пользователь с id " + userId + " не найден"));

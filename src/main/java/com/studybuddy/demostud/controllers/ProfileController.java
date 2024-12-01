@@ -109,6 +109,7 @@ public class ProfileController {
         }
 
         List<UserSubDisciplineResponse> response = userSubDisciplines.stream()
+                .sorted(Comparator.comparing(UserSubDiscipline::getSkillLevel).reversed())
                 .map(userSubDiscipline -> new UserSubDisciplineResponse(
                         userSubDiscipline.getSubDiscipline().getId(),
                         userSubDiscipline.getSubDiscipline().getName(),
@@ -133,6 +134,9 @@ public class ProfileController {
         }
 
         int skillLevel = Integer.parseInt(requestBody.get("skillLevel"));
+        if (skillLevel > 10 || skillLevel<1){
+            return ResponseEntity.ok("You cannot your proficiency level with that, please use numbers between 1 and 10");
+        }
         UserSubDiscipline userSubDiscipline = new UserSubDiscipline();
         userSubDiscipline.setUser(user);
         userSubDiscipline.setSubDiscipline(subDiscipline);

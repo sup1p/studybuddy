@@ -1,6 +1,8 @@
 package com.studybuddy.demostud.Service;
 
 
+import com.studybuddy.demostud.DTOs.FriendRequestResponse;
+import com.studybuddy.demostud.DTOs.FriendsInfo;
 import com.studybuddy.demostud.enums.RequestStatus;
 import com.studybuddy.demostud.models.FriendRequest;
 import com.studybuddy.demostud.models.User;
@@ -12,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -23,10 +25,16 @@ public class UserService {
     @Autowired
     private FriendsRequestRepository friendsRequestRepository;
 
-    public Set<User> getFriends(Long userId) {
+    public List<FriendsInfo> getFriends(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return user.getFriends();
+
+        return user.getFriends().stream()
+                .map(friend -> new FriendsInfo(
+                        friend.getId(),
+                        friend.getUsername()
+                ))
+                .collect(Collectors.toList());
     }
 
     public void deleteFriendRequest(Long requestId, Long userId) {
@@ -76,17 +84,45 @@ public class UserService {
 
 
 
-    public List<FriendRequest> getRequestFromMe(Long userId) {
+    public List<FriendRequestResponse> getRequestFromMe(Long userId) {
         User sender = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return friendsRequestRepository.findBySender(sender);
+
+        List<FriendRequest> friendRequests = friendsRequestRepository.findBySender(sender);
+
+        return friendRequests.stream()
+                .filter(request -> request.getStatus() == RequestStatus.PENDING)
+                .map(request -> new FriendRequestResponse(
+                        request.getId(),
+                        request.getSender().getId(),
+                        request.getSender().getUsername(),
+                        request.getReceiver().getId(),
+                        request.getReceiver().getUsername(),
+                        request.getStatus().name()
+                ))
+                .collect(Collectors.toList());
     }
 
-    public List<FriendRequest> getRequestsToMe(Long userId) {
+
+    public List<FriendRequestResponse> getRequestsToMe(Long userId) {
         User receiver = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return friendsRequestRepository.findByReceiver(receiver);
+
+        List<FriendRequest> friendRequests = friendsRequestRepository.findByReceiver(receiver);
+
+        return friendRequests.stream()
+                .filter(request -> request.getStatus() == RequestStatus.PENDING)
+                .map(request -> new FriendRequestResponse(
+                        request.getId(),
+                        request.getSender().getId(),
+                        request.getSender().getUsername(),
+                        request.getReceiver().getId(),
+                        request.getReceiver().getUsername(),
+                        request.getStatus().name()
+                ))
+                .collect(Collectors.toList());
     }
+
 
     public void acceptFriendRequest(Long requestId) {
         FriendRequest request = friendsRequestRepository.findById(requestId)
