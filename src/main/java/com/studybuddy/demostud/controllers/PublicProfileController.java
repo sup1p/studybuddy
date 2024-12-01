@@ -24,12 +24,10 @@ import java.time.LocalDate;
 public class PublicProfileController {
 
     private final UserRepository userRepository;
-    private final LanguageService languageService;
     private final UserSubDisciplineRepository userSubDisciplineRepository;
 
-    public PublicProfileController(UserRepository userRepository, LanguageService languageService, UserSubDisciplineRepository userSubDisciplineRepository) {
+    public PublicProfileController(UserRepository userRepository, UserSubDisciplineRepository userSubDisciplineRepository) {
         this.userRepository = userRepository;
-        this.languageService = languageService;
         this.userSubDisciplineRepository = userSubDisciplineRepository;
     }
 

@@ -24,7 +24,7 @@ public class MatchingService {
         List<Object[]> results = userSubDisciplineRepository.findMatchingPairsWithScores();
 
 
-        // Преобразуем результаты SQL-запроса в DTO
+        // Transform result of SQL-request into DTO
         return results.stream()
                 .map(row -> new MatchingResult(
                         (Long) row[0], // student_1_id
@@ -45,29 +45,29 @@ public class MatchingService {
 
         return results.stream()
                 .filter(row -> {
-                    // Проверка по гендеру
+                    // Check to gender
                     if (genderFilter != null && !genderFilter.isBlank()) {
                         Long student2Id = (Long) row[1]; // student_2_id
                         User student2 = userRepository.findById(student2Id)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
                         if (!genderFilter.equalsIgnoreCase(student2.getGender())) {
-                            return false; // Гендер не совпадает
+                            return false; // gender doesnt match
                         }
                     }
 
-                    // Проверка по локации
+                    // check to location
                     if (locationFilter) {
                         Long student2Id = (Long) row[1]; // student_2_id
                         User student2 = userRepository.findById(student2Id)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
                         if (!currentUserLocation.equalsIgnoreCase(student2.getCountry())) {
-                            return false; // Локация не совпадает
+                            return false; // location doesnt match
                         }
                     }
 
-                    return true; // Если прошли все проверки
+                    return true; // if every
                 })
                 .map(row -> new MatchingResult(
                         (Long) row[0], // student_1_id

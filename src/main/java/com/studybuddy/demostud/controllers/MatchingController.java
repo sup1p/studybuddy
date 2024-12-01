@@ -41,7 +41,7 @@ public class MatchingController {
         User user = getAuthenticatedUser(); // current user
 
         boolean locationFilter = searchRequest.isLocationFilter();  //turn on/of location filter
-        String genderFilter = searchRequest.getGenderFilter();   // getting gender filter that then finds only male/female/doesnt matter
+        String genderFilter = searchRequest.getGenderFilter();   // getting gender filter that then finds only male-female-doesnt matter
 
         List<MatchingResult> matches = matchingService.findMatchesWithWeakSubjects(user.getId(),
                 searchRequest.getWeakSubjects(),
