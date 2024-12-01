@@ -25,7 +25,7 @@ public class FriendController {
     private UserRepository userRepository;
 
     // Get all friends of the authenticated user
-    @GetMapping("/friends")
+    @GetMapping("/show")
     public ResponseEntity<Set<User>> getFriends() {
         // Get the currently authenticated user
         User authenticatedUser = getAuthenticatedUser();
@@ -33,7 +33,7 @@ public class FriendController {
     }
 
     // Delete a friend for the authenticated user
-    @DeleteMapping("/friends/{friendId}")
+    @DeleteMapping("/delete/{friendId}")
     public ResponseEntity<String> deleteFriend(@PathVariable Long friendId) {
         User authenticatedUser = getAuthenticatedUser();
         userService.deleteFriend(authenticatedUser.getId(), friendId);
@@ -41,7 +41,7 @@ public class FriendController {
     }
 
     // Send a friend request to another user by username
-    @PostMapping("friends/send-request")
+    @PostMapping("/send-request")
     public ResponseEntity<String> sendFriendRequest(@RequestBody Map<String, String> requestBody) {
         String username = requestBody.get("username");
 
@@ -59,35 +59,35 @@ public class FriendController {
     }
 
     // Get requests sent by the authenticated user
-    @GetMapping("friends/requests/from-me")
+    @GetMapping("/requests/from-me")
     public ResponseEntity<List<FriendRequest>> getRequestsFromMe() {
         User authenticatedUser = getAuthenticatedUser();
         return ResponseEntity.ok(userService.getRequestFromMe(authenticatedUser.getId()));
     }
 
     // Get requests received by the authenticated user
-    @GetMapping("friends/requests/to-me")
+    @GetMapping("/requests/to-me")
     public ResponseEntity<List<FriendRequest>> getRequestsToMe() {
         User authenticatedUser = getAuthenticatedUser();
         return ResponseEntity.ok(userService.getRequestsToMe(authenticatedUser.getId()));
     }
 
     // Accept a friend request
-    @PostMapping("friends/requests/{requestId}/accept")
+    @PostMapping("/requests/{requestId}/accept")
     public ResponseEntity<String> acceptFriendRequest(@PathVariable Long requestId) {
         userService.acceptFriendRequest(requestId);
         return ResponseEntity.ok("Friend request accepted");
     }
 
     // Decline a friend request
-    @PostMapping("friends/requests/{requestId}/decline")
+    @PostMapping("/requests/{requestId}/decline")
     public ResponseEntity<String> declineFriendRequest(@PathVariable Long requestId) {
         userService.declineFriendRequest(requestId);
         return ResponseEntity.ok("Friend request declined");
     }
 
     // Delete a friend request sent or received
-    @DeleteMapping("friends/requests/{requestId}/delete")
+    @DeleteMapping("/requests/{requestId}/delete")
     public ResponseEntity<String> deleteFriendRequest(@PathVariable Long requestId) {
         User authenticatedUser = getAuthenticatedUser();
         userService.deleteFriendRequest(requestId, authenticatedUser.getId());

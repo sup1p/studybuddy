@@ -1,11 +1,22 @@
 package com.studybuddy.demostud.DTOs;
 
+import java.time.LocalDate;
+
 public class RegisterRequest {
     private String username;
     private String email;
     private String password;
     private String role;
     private String gender;
+    private LocalDate dateOfBirth;
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
 
     public String getGender() {
         return gender;

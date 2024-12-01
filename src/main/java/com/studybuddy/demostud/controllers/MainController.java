@@ -76,6 +76,7 @@ public class MainController {
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
         user.setGender(registerRequest.getGender());
+        user.setDateOfBirth(registerRequest.getDateOfBirth());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
         Role role = roleRepository.findByRoleName("ROLE_USER")
@@ -90,8 +91,8 @@ public class MainController {
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> LoginUser(@RequestBody LoginRequest loginRequest) {
-
-            // Authenticate the user 
+        try {
+            // Authenticate the user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getEmail(), loginRequest.getPassword()
@@ -108,17 +109,25 @@ public class MainController {
             String token = jwtUtils.generateToken(userDetails);
 
             // Return the token in the response
-            return ResponseEntity.ok(new LoginResponse(token,user.getUsername()));
+            return ResponseEntity.ok(new LoginResponse(token, user.getUsername()));
 
-
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            // Catch authentication exceptions (invalid email/password)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Неверный email или пароль");
+        } catch (Exception e) {
+            // Catch any other exceptions that might occur
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Произошла ошибка. Пожалуйста, попробуйте позже.");
+        }
     }
-    @GetMapping("/settings/gender")
+
+
+    @GetMapping("user/settings/gender")
     public ResponseEntity<String> showGender(){
         User user = getAuthenticatedUser();
         return ResponseEntity.ok(user.getGender());
     }
     // SETTINGS
-    @PutMapping("/settings")
+    @PutMapping("user/settings")
     public ResponseEntity<String> updateUserSettings(@RequestBody User updatedSettings) {
         logger.info("PUT /settings called");
         User user = getAuthenticatedUser(); // Получаем текущего пользователя
@@ -138,7 +147,7 @@ public class MainController {
         return new ResponseEntity<>("User settings updated successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("/settings/delete")
+    @DeleteMapping("user/settings/delete")
     public ResponseEntity<String> deleteUserAccount() {
         logger.info("DELETE /settings/delete called");
         User user = getAuthenticatedUser(); // Получаем текущего пользователя
