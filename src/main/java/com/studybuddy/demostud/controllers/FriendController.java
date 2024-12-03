@@ -3,7 +3,10 @@ package com.studybuddy.demostud.controllers;
 import com.studybuddy.demostud.DTOs.FriendRequestResponse;
 import com.studybuddy.demostud.DTOs.FriendsInfo;
 import com.studybuddy.demostud.Service.UserService;
+import com.studybuddy.demostud.enums.RequestStatus;
+import com.studybuddy.demostud.models.FriendRequest;
 import com.studybuddy.demostud.models.User;
+import com.studybuddy.demostud.repository.FriendsRequestRepository;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/user/friends")
@@ -23,6 +27,9 @@ public class FriendController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private FriendsRequestRepository friendsRequestRepository;
 
     @GetMapping("/show")//returns every friend of user
     public ResponseEntity<List<FriendsInfo>> getFriends() {
@@ -42,9 +49,30 @@ public class FriendController {
         String username = requestBody.get("username"); // getting username in json for which we are sending request
         User sender = getAuthenticatedUser();  //current user
 
+        User receiver = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+
         if (sender.getUsername().equals(username)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You cannot send a friend request to yourself");
         } // check for not send request to myself
+
+        Optional<FriendRequest> existingRequest = friendsRequestRepository.findTopBySenderAndReceiverOrderByIdDesc(sender,receiver);
+
+        if (existingRequest.isPresent()) {
+            FriendRequest friendRequest = existingRequest.get();
+
+            //return status of request if it exists
+            System.out.println("Existing friend request status: " + friendRequest.getStatus());
+
+            //dividing situations to different exceptions
+            if (friendRequest.getStatus() == RequestStatus.PENDING) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Friend request is already sent and is pending approval.");
+            }
+            if (friendRequest.getStatus() == RequestStatus.ACCEPTED) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Friend request is already sent and has been accepted.");
+            }
+        }
+
 
         userService.sendFriendsRequest(sender.getId(), username);  //sending request by current users id and receivers username
         return ResponseEntity.status(HttpStatus.CREATED).body("Friend request sent");

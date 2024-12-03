@@ -27,53 +27,53 @@ public class MatchingService {
         return results.stream()
                 .map(row -> new MatchingResult(
                         (Long) row[0], // MyId
-                        (Long) row[1], // BuddiesId
-                        (String) row[2], // MyHelpToBuddieSubjects
-                        (String) row[3], // BuddieHelpToMeSubjects
-                        (Long) row[4] // total_score
+                        (String) row[1],
+                        (String) row[2],
+                        (String) row[3],
+                        (Long) row[4]
                 ))
                 .collect(Collectors.toList());
     }
     public List<MatchingResult> findMatchesWithWeakSubjects(Long userId, List<String> weakSubjects, String genderFilter, boolean locationFilter) {
         List<Object[]> results = userSubDisciplineRepository.findMatchesWithSelectedWeakSubjects(userId, weakSubjects);
 
-        Optional<User> currentUser = Optional.ofNullable(userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found")));
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String currentUserLocation = currentUser.get().getCountry();
+        String currentUserLocation = currentUser.getCountry();
 
         return results.stream()
                 .filter(row -> {
-                    // Check to gender
+                    // Gender filter
                     if (genderFilter != null && !genderFilter.isBlank()) {
-                        Long student2Id = (Long) row[1]; // student_2_id
-                        User student2 = userRepository.findById(student2Id)
+                        String matchingUserUsername = (String) row[1]; // matching_user_username
+                        User matchingUser = userRepository.findByUsername(matchingUserUsername)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-                        if (!genderFilter.equalsIgnoreCase(student2.getGender())) {
-                            return false; // gender doesnt match
+                        if (!genderFilter.equalsIgnoreCase(matchingUser.getGender())) {
+                            return false; // gender doesn't match
                         }
                     }
 
-                    // check to location
+                    // Location filter
                     if (locationFilter) {
-                        Long student2Id = (Long) row[1]; // student_2_id
-                        User student2 = userRepository.findById(student2Id)
+                        String matchingUserUsername = (String) row[1]; // matching_user_username
+                        User matchingUser = userRepository.findByUsername(matchingUserUsername)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-                        if (!currentUserLocation.equalsIgnoreCase(student2.getCountry())) {
-                            return false; // location doesnt match
+                        if (!currentUserLocation.equalsIgnoreCase(matchingUser.getCountry())) {
+                            return false; // location doesn't match
                         }
                     }
 
-                    return true; // if every
+                    return true; // all filters passed
                 })
                 .map(row -> new MatchingResult(
-                        (Long) row[0], // MyId
-                        (Long) row[1], // BuddiesId
-                        (String) row[2], // MyHelpToBuddieSubjects
-                        (String) row[3], // BuddieHelpToMeSubjects
-                        (Long) row[4] // total_score
+                        (Long) row[0], // matching_user_id
+                        (String) row[1], // matching_user_username
+                        (String) row[2], // help_needed_subjects
+                        (String) row[3], // help_provided_subjects
+                        (Long) row[4]  // total_score
                 ))
                 .collect(Collectors.toList());
     }

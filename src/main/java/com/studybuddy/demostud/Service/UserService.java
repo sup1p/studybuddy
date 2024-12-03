@@ -11,7 +11,6 @@ import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -59,23 +58,6 @@ public class UserService {
         User receiver = userRepository.findByUsername(receiverUsername)
                 .orElseThrow(() -> new RuntimeException("Receiver not found"));
 
-        //check if request already exists
-        Optional<FriendRequest> existingRequest = friendsRequestRepository.findTopBySenderAndReceiverOrderByIdDesc(sender,receiver);
-
-        if (existingRequest.isPresent()) {
-            FriendRequest friendRequest = existingRequest.get();
-
-            //return status of request if it exists
-            System.out.println("Existing friend request status: " + friendRequest.getStatus());
-
-            //dividing situations to different exceptions
-            if (friendRequest.getStatus() == RequestStatus.PENDING) {
-                throw new RuntimeException("Friend request is already sent and is pending approval.");
-            }
-            if (friendRequest.getStatus() == RequestStatus.ACCEPTED) {
-                throw new RuntimeException("Friend request is already sent and has been accepted.");
-            }
-        }
         //saving and giving status pending
         FriendRequest newRequest = new FriendRequest();
         newRequest.setSender(sender);

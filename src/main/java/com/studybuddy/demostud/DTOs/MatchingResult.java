@@ -3,17 +3,25 @@ package com.studybuddy.demostud.DTOs;
 
 public class MatchingResult {
     private Long MyId;
-    private Long BuddiesId;
-    private String MyHelpToBuddieSubjects;
     private String BuddieHelpToMeSubjects;
+    private String MyHelpToBuddieSubjects;
     private Long totalScore;
+    private String BuddiesName;
 
-    public MatchingResult(Long MyId, Long BuddiesId, String MyHelpToBuddieSubjects, String BuddieHelpToMeSubjects, Long totalScore) {
+    public MatchingResult(Long MyId, String BuddiesName,String BuddieHelpToMeSubjects ,String MyHelpToBuddieSubjects , Long totalScore) {
         this.MyId = MyId;
-        this.BuddiesId = BuddiesId;
-        this.MyHelpToBuddieSubjects = MyHelpToBuddieSubjects;
+        this.BuddiesName = BuddiesName;
         this.BuddieHelpToMeSubjects = BuddieHelpToMeSubjects;
+        this.MyHelpToBuddieSubjects = MyHelpToBuddieSubjects;
         this.totalScore = totalScore;
+    }
+
+    public String getBuddiesName() {
+        return BuddiesName;
+    }
+
+    public void setBuddiesName(String buddiesName) {
+        BuddiesName = buddiesName;
     }
 
     public Long getMyId() {
@@ -22,14 +30,6 @@ public class MatchingResult {
 
     public void setMyId(Long myId) {
         this.MyId = myId;
-    }
-
-    public Long getBuddiesId() {
-        return BuddiesId;
-    }
-
-    public void setBuddiesId(Long buddiesId) {
-        this.BuddiesId = buddiesId;
     }
 
     public String getMyHelpToBuddieSubjects() {
