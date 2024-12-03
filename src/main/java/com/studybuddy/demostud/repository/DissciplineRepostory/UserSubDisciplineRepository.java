@@ -19,6 +19,7 @@ public interface UserSubDisciplineRepository extends JpaRepository<UserSubDiscip
         WITH match_scores AS (
             SELECT
                 usd1.user_id AS student_1_id,
+                usd2.user_id AS student_2_id,
                 u2.username AS student_2_username,
                 sd.name AS sub_discipline_name,
                 CASE
@@ -51,17 +52,19 @@ public interface UserSubDisciplineRepository extends JpaRepository<UserSubDiscip
         )
         SELECT
             student_1_id,
+            student_2_id,
             student_2_username,
             MAX(CASE WHEN direction = 'student_1_help' THEN sub_discipline_name END) AS student_1_help_subjects,
             MAX(CASE WHEN direction = 'student_2_help' THEN sub_discipline_name END) AS student_2_help_subjects,
             SUM(score) AS total_score --вычисляется общая сумма уровня взаимопомощи
         FROM match_scores
         WHERE score > 0
-        GROUP BY student_1_id, student_2_username
+        GROUP BY student_1_id, student_2_id, student_2_username
         ORDER BY total_score DESC
     """, nativeQuery = true)
         //рекомендации, лишь возвращает студентов на основе заранее определенных на аккаунте слабых дисциплин
     List<Object[]> findMatchingPairsWithScores();
+
 
 
     @Query(value = """

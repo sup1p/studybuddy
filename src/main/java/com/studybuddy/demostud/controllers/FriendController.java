@@ -69,7 +69,7 @@ public class FriendController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Friend request is already sent and is pending approval.");
             }
             if (friendRequest.getStatus() == RequestStatus.ACCEPTED) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Friend request is already sent and has been accepted.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Friend request is already sent and is pending approval.");
             }
         }
 

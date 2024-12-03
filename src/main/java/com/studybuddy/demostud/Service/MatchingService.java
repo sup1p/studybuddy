@@ -26,11 +26,12 @@ public class MatchingService {
         // Transform result of SQL-request into DTO
         return results.stream()
                 .map(row -> new MatchingResult(
-                        (Long) row[0], // MyId
-                        (String) row[1],
-                        (String) row[2],
-                        (String) row[3],
-                        (Long) row[4]
+                        (Long) row[0], // matching_user_id
+                        (Long) row[1], // buddies_id
+                        (String) row[2], // buddies_username
+                        (String) row[3], // help_provided_subjects
+                        (String) row[4], // help_needed_subjects
+                        (Long) row[5]  // total_score
                 ))
                 .collect(Collectors.toList());
     }
@@ -70,10 +71,11 @@ public class MatchingService {
                 })
                 .map(row -> new MatchingResult(
                         (Long) row[0], // matching_user_id
-                        (String) row[1], // matching_user_username
-                        (String) row[2], // help_needed_subjects
+                        (Long) row[1], // buddies_id
+                        (String) row[2], // buddies_username
                         (String) row[3], // help_provided_subjects
-                        (Long) row[4]  // total_score
+                        (String) row[4], // help_needed_subjects
+                        (Long) row[5]  // total_score
                 ))
                 .collect(Collectors.toList());
     }

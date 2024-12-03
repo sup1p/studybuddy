@@ -1,9 +1,6 @@
 package com.studybuddy.demostud.controllers;
 
-import com.studybuddy.demostud.DTOs.LanguagesResponse;
-import com.studybuddy.demostud.DTOs.SkillUpdateRequest;
-import com.studybuddy.demostud.DTOs.SubDisciplineResponse;
-import com.studybuddy.demostud.DTOs.UserSubDisciplineResponse;
+import com.studybuddy.demostud.DTOs.*;
 import com.studybuddy.demostud.Service.LanguageService;
 import com.studybuddy.demostud.models.Language;
 import com.studybuddy.demostud.models.User;
@@ -63,6 +60,16 @@ public class ProfileController {
         response.put("about", user.getAbout());
         response.put("languages", languageService.getLanguages(user.getId()));
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/all-usernames")
+    public ResponseEntity<List<UsernameResponse>> getAllUsernames() {
+        User user = getAuthenticatedUser(); // получаем текущего пользователя
+        List<User> users = userRepository.findAll(); // получение всех пользователей из базы данных
+        List<UsernameResponse> Usernames = users.stream()
+                .map(username -> new UsernameResponse(username.getId(), username.getUsername())) // преобразование списка пользователей в список никнеймов
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(Usernames);
     }
 
     // About editing
