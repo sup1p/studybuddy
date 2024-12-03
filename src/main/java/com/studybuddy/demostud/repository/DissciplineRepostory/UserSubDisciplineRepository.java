@@ -112,13 +112,14 @@ public interface UserSubDisciplineRepository extends JpaRepository<UserSubDiscip
         )
         SELECT
             my_id,
+            matching_user_id,
             matching_user_username,
             MAX(CASE WHEN direction = 'user_help' THEN sub_discipline_name END) AS help_needed_subjects,
             MAX(CASE WHEN direction = 'matching_user_help' THEN sub_discipline_name END) AS help_provided_subjects,
             SUM(score) AS total_score
         FROM match_scores
         WHERE score > 0
-        GROUP BY my_id, matching_user_username
+        GROUP BY my_id, matching_user_id, matching_user_username
         ORDER BY total_score DESC
     """, nativeQuery = true)
     List<Object[]> findMatchesWithSelectedWeakSubjects(@Param("userId") Long userId, @Param("weakSubjectNames") List<String> weakSubjectNames);

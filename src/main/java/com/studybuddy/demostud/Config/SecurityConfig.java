@@ -1,6 +1,7 @@
 package com.studybuddy.demostud.Config;
 
 import com.studybuddy.demostud.Service.JwtFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,10 +30,16 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/register", "/auth/login","/homepage").permitAll() // Allow these endpoints for everybody users
+                        .requestMatchers("/avatars/**").permitAll() // Разрешить доступ к загруженным аватарам
                         .requestMatchers("/admin/**").hasRole("ADMIN") //only admin guys
                         .requestMatchers("/user/**","/public/**").hasAnyRole("USER", "ADMIN") //for users, but admins can access too
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); //my JWT FILTER before standart password log filter
+
+        http.exceptionHandling((exceptions) -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
+                .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden"))
+        );
 
         return http.build();
     }

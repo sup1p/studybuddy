@@ -24,6 +24,7 @@ public class User {
     private String country;
     private String about;
     private String gender;
+    private String avatarUrl;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -144,5 +145,13 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }
