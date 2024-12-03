@@ -11,9 +11,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/matching")
+@RequestMapping("/user/matching")
 public class MatchingController {
 
     @Autowired
@@ -32,22 +33,34 @@ public class MatchingController {
     public ResponseEntity<List<MatchingResult>> getDefaultRecommendations() {
         User user = getAuthenticatedUser(); // current user
         List<MatchingResult> matches = matchingService.getDefaultRecommendations(user.getId());
-        return ResponseEntity.ok(matches);
-    }
 
-    @PostMapping("/search")   //searching to buddies by specific disciplines, that replaces user's weaknesses
-    public ResponseEntity<List<MatchingResult>> searchMatchingPairs(
-            @RequestBody SearchRequest searchRequest) {
-        User user = getAuthenticatedUser(); // current user
-
-        boolean locationFilter = searchRequest.isLocationFilter();  //turn on/of location filter
-        String genderFilter = searchRequest.getGenderFilter();   // getting gender filter that then finds only male-female-doesnt matter
-
-        List<MatchingResult> matches = matchingService.findMatchesWithWeakSubjects(user.getId(),
-                searchRequest.getWeakSubjects(),
-                genderFilter,locationFilter);
+        if (user.getId() != null) {
+            matches = matches.stream()
+                    .filter(matchingResult -> matchingResult.getMyId().equals(user.getId()))
+                    .collect(Collectors.toList());
+        }
 
         return ResponseEntity.ok(matches);
     }
+
+//    @PostMapping("/search")   //searching to buddies by specific disciplines, that replaces user's weaknesses
+//    public ResponseEntity<List<MatchingResult>> searchMatchingPairs(
+//            @RequestBody SearchRequest searchRequest) {
+//        User user = getAuthenticatedUser(); // current user
+//
+//        boolean locationFilter = searchRequest.isLocationFilter();  //turn on/of location filter
+//        String genderFilter = searchRequest.getGenderFilter();   // getting gender filter that then finds only male-female-doesnt matter
+//
+//        List<MatchingResult> matches = matchingService.findMatchesWithWeakSubjects(user.getId(),
+//                searchRequest.getWeakSubjects(),
+//                genderFilter,locationFilter);
+//
+//
+//        matches = matches.stream()
+//                .filter(matchingResult -> matchingResult.getMyId().equals(user.getId()))
+//                .collect(Collectors.toList());
+//
+//        return ResponseEntity.ok(matches);
+//    }
 }
 

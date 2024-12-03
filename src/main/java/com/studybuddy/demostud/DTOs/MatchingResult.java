@@ -1,58 +1,58 @@
+
 package com.studybuddy.demostud.DTOs;
 
 public class MatchingResult {
-    private Long student1Id;
-    private Long student2Id;
-    private String student1HelpSubjects;
-    private String student2HelpSubjects;
-    private Integer totalScore;
+    private Long MyId;
+    private Long BuddiesId;
+    private String MyHelpToBuddieSubjects;
+    private String BuddieHelpToMeSubjects;
+    private Long totalScore;
 
-    public MatchingResult(Long student1Id, Long student2Id, String student1HelpSubjects, String student2HelpSubjects, Integer totalScore) {
-        this.student1Id = student1Id;
-        this.student2Id = student2Id;
-        this.student1HelpSubjects = student1HelpSubjects;
-        this.student2HelpSubjects = student2HelpSubjects;
+    public MatchingResult(Long MyId, Long BuddiesId, String MyHelpToBuddieSubjects, String BuddieHelpToMeSubjects, Long totalScore) {
+        this.MyId = MyId;
+        this.BuddiesId = BuddiesId;
+        this.MyHelpToBuddieSubjects = MyHelpToBuddieSubjects;
+        this.BuddieHelpToMeSubjects = BuddieHelpToMeSubjects;
         this.totalScore = totalScore;
     }
 
-    public Long getStudent1Id() {
-        return student1Id;
+    public Long getMyId() {
+        return MyId;
     }
 
-    public void setStudent1Id(Long student1Id) {
-        this.student1Id = student1Id;
+    public void setMyId(Long myId) {
+        this.MyId = myId;
     }
 
-    public Long getStudent2Id() {
-        return student2Id;
+    public Long getBuddiesId() {
+        return BuddiesId;
     }
 
-    public void setStudent2Id(Long student2Id) {
-        this.student2Id = student2Id;
+    public void setBuddiesId(Long buddiesId) {
+        this.BuddiesId = buddiesId;
     }
 
-    public String getStudent1HelpSubjects() {
-        return student1HelpSubjects;
+    public String getMyHelpToBuddieSubjects() {
+        return MyHelpToBuddieSubjects;
     }
 
-    public void setStudent1HelpSubjects(String student1HelpSubjects) {
-        this.student1HelpSubjects = student1HelpSubjects;
+    public void setMyHelpToBuddieSubjects(String myHelpToBuddieSubjects) {
+        this.MyHelpToBuddieSubjects = myHelpToBuddieSubjects;
     }
 
-    public String getStudent2HelpSubjects() {
-        return student2HelpSubjects;
+    public String getBuddieHelpToMeSubjects() {
+        return BuddieHelpToMeSubjects;
     }
 
-    public void setStudent2HelpSubjects(String student2HelpSubjects) {
-        this.student2HelpSubjects = student2HelpSubjects;
+    public void setBuddieHelpToMeSubjects(String buddieHelpToMeSubjects) {
+        this.BuddieHelpToMeSubjects = buddieHelpToMeSubjects;
     }
 
-    public Integer getTotalScore() {
+    public Long getTotalScore() {
         return totalScore;
     }
 
-    public void setTotalScore(Integer totalScore) {
+    public void setTotalScore(Long totalScore) {
         this.totalScore = totalScore;
     }
 }
-

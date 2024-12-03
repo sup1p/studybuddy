@@ -23,15 +23,14 @@ public class MatchingService {
     public List<MatchingResult> getDefaultRecommendations(Long userId) {
         List<Object[]> results = userSubDisciplineRepository.findMatchingPairsWithScores();
 
-
         // Transform result of SQL-request into DTO
         return results.stream()
                 .map(row -> new MatchingResult(
-                        (Long) row[0], // student_1_id
-                        (Long) row[1], // student_2_id
-                        (String) row[2], // student_1_help_subjects
-                        (String) row[3], // student_2_help_subjects
-                        (Integer) row[4] // total_score
+                        (Long) row[0], // MyId
+                        (Long) row[1], // BuddiesId
+                        (String) row[2], // MyHelpToBuddieSubjects
+                        (String) row[3], // BuddieHelpToMeSubjects
+                        (Long) row[4] // total_score
                 ))
                 .collect(Collectors.toList());
     }
@@ -70,11 +69,11 @@ public class MatchingService {
                     return true; // if every
                 })
                 .map(row -> new MatchingResult(
-                        (Long) row[0], // student_1_id
-                        (Long) row[1], // student_2_id
-                        (String) row[2], // student_1_help_subjects
-                        (String) row[3], // student_2_help_subjects
-                        (Integer) row[4] // total_score
+                        (Long) row[0], // MyId
+                        (Long) row[1], // BuddiesId
+                        (String) row[2], // MyHelpToBuddieSubjects
+                        (String) row[3], // BuddieHelpToMeSubjects
+                        (Long) row[4] // total_score
                 ))
                 .collect(Collectors.toList());
     }

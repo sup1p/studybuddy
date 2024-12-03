@@ -10,6 +10,7 @@ import com.studybuddy.demostud.models.disciplines_package.UserSubDiscipline;
 import com.studybuddy.demostud.repository.DissciplineRepostory.SubDisciplineRepository;
 import com.studybuddy.demostud.repository.DissciplineRepostory.UserSubDisciplineRepository;
 import com.studybuddy.demostud.repository.UserRepository;
+import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -122,6 +123,14 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
+//    @GetMapping("/discipline/all")
+//    public ResponseEntity<List> getWholeDisciplines() {
+//        User user = getAuthenticatedUser();
+//        List<SubDiscipline> subDisciplines = subDisciplineRepository.findAll();
+//
+//
+//
+//    }
 
     //endpoint for adding disciplines
     @PostMapping("/discipline/add")
