@@ -1,6 +1,8 @@
 package com.studybuddy.demostud.controllers;
 
+import com.studybuddy.demostud.DTOs.LanguagesResponse;
 import com.studybuddy.demostud.DTOs.SkillUpdateRequest;
+import com.studybuddy.demostud.DTOs.SubDisciplineResponse;
 import com.studybuddy.demostud.DTOs.UserSubDisciplineResponse;
 import com.studybuddy.demostud.Service.LanguageService;
 import com.studybuddy.demostud.models.Language;
@@ -9,6 +11,7 @@ import com.studybuddy.demostud.models.disciplines_package.SubDiscipline;
 import com.studybuddy.demostud.models.disciplines_package.UserSubDiscipline;
 import com.studybuddy.demostud.repository.DissciplineRepostory.SubDisciplineRepository;
 import com.studybuddy.demostud.repository.DissciplineRepostory.UserSubDisciplineRepository;
+import com.studybuddy.demostud.repository.LanguageRepository;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.apache.coyote.Response;
 import org.slf4j.Logger;
@@ -19,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user/profile")
@@ -30,14 +34,16 @@ public class ProfileController {
     private final SubDisciplineRepository subDisciplineRepository;
     private final UserRepository userRepository;
     private final UserSubDisciplineRepository userSubDisciplineRepository;
+    private final LanguageRepository languageRepository;
 
     public ProfileController(LanguageService languageService, UserRepository userRepository,
                              UserSubDisciplineRepository userSubDisciplineRepository,
-                             SubDisciplineRepository subDisciplineRepository) {
+                             SubDisciplineRepository subDisciplineRepository, LanguageRepository languageRepository) {
         this.languageService = languageService;
         this.userRepository = userRepository;
         this.userSubDisciplineRepository = userSubDisciplineRepository;
         this.subDisciplineRepository = subDisciplineRepository;
+        this.languageRepository = languageRepository;
     }
 
     // Helper method to get the authenticated user
@@ -71,6 +77,17 @@ public class ProfileController {
         user.setAbout(about);
         userRepository.save(user);
         return new ResponseEntity<>("Биография пользователя обновлена успешно.", HttpStatus.OK);
+    }
+    @GetMapping("/language/all")
+    public ResponseEntity<List<LanguagesResponse>> language() {
+        User user = getAuthenticatedUser();
+        List<Language> languages = languageRepository.findAll();
+        List<LanguagesResponse> response = languages.stream()
+                .map(language ->
+                new LanguagesResponse(language.getId(), language.getLanguageName())
+                )
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
     // Languages adding
@@ -123,14 +140,15 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
-//    @GetMapping("/discipline/all")
-//    public ResponseEntity<List> getWholeDisciplines() {
-//        User user = getAuthenticatedUser();
-//        List<SubDiscipline> subDisciplines = subDisciplineRepository.findAll();
-//
-//
-//
-//    }
+    @GetMapping("/all-disciplines")
+    public ResponseEntity<List<SubDisciplineResponse>> getAllDisciplines() {
+        User user = getAuthenticatedUser();
+        List<SubDiscipline> subDisciplines = subDisciplineRepository.findAll();
+        List<SubDisciplineResponse> response = subDisciplines.stream().map(subDiscipline ->
+                new SubDisciplineResponse(subDiscipline.getId(), subDiscipline.getName())
+        ).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
 
     //endpoint for adding disciplines
     @PostMapping("/discipline/add")
