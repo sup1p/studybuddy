@@ -11,7 +11,6 @@
 	<groupId>com.studybuddy</groupId>
 	<artifactId>demostud</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<language_name>demostud</language_name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
@@ -111,7 +110,7 @@
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
-			<version>RELEASE</version>
+			<version>7.4.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
