@@ -1,32 +1,27 @@
-# Этап 1: Сборка
-FROM maven:3.9.4-openjdk-21-slim AS build
+# Stage 1: Build
+FROM maven:3.8.8-openjdk-21-slim as build
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файл pom.xml и загружаем зависимости
+# Копирование файлов Maven
 COPY pom.xml .
-
-# Предварительно загружаем зависимости для использования кэширования Docker
-RUN mvn dependency:go-offline
-
-# Копируем исходный код приложения
 COPY src ./src
 
-# Собираем JAR-файл приложения, пропуская тесты (опционально)
+# Загрузка зависимостей (кешируем этот слой для ускорения последующих сборок)
+RUN mvn dependency:go-offline
+
+# Сборка приложения без запуска тестов
 RUN mvn clean package -DskipTests
 
-# Этап 2: Запуск
+# Stage 2: Run
 FROM openjdk:21-slim
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем собранный JAR-файл из этапа сборки
+# Копирование собранного JAR из этапа сборки
 COPY --from=build /app/target/*.jar app.jar
 
-# Открываем порт приложения
 EXPOSE 8080
 
-# Устанавливаем команду для запуска приложения
+# Установка точки входа
 ENTRYPOINT ["java", "-Dvertx.disableDnsResolver=true", "-Djava.net.preferIPv4Stack=true", "-jar", "app.jar"]
