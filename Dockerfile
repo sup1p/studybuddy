@@ -1,27 +1,32 @@
-# Stage 1: Build
-FROM maven:3.8.7-openjdk-17-slim as build
+# Этап 1: Сборка
+FROM maven:3.9.4-openjdk-21-slim AS build
 
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Copy the Maven files
+# Копируем файл pom.xml и загружаем зависимости
 COPY pom.xml .
-COPY src src
 
-# Download and cache dependencies
-RUN mvn dependency:resolve
+# Предварительно загружаем зависимости для использования кэширования Docker
+RUN mvn dependency:go-offline
 
-# Build the application JAR
-RUN mvn package -DskipTests
+# Копируем исходный код приложения
+COPY src ./src
 
-# Stage 2: Run
-FROM openjdk:17-slim
+# Собираем JAR-файл приложения, пропуская тесты (опционально)
+RUN mvn clean package -DskipTests
 
+# Этап 2: Запуск
+FROM openjdk:21-slim
+
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Copy the built jar from the build stage
+# Копируем собранный JAR-файл из этапа сборки
 COPY --from=build /app/target/*.jar app.jar
 
+# Открываем порт приложения
 EXPOSE 8080
 
-# Set the entrypoint
+# Устанавливаем команду для запуска приложения
 ENTRYPOINT ["java", "-Dvertx.disableDnsResolver=true", "-Djava.net.preferIPv4Stack=true", "-jar", "app.jar"]
