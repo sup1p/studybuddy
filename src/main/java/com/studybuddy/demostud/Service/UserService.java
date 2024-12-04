@@ -10,13 +10,7 @@ import com.studybuddy.demostud.repository.FriendsRequestRepository;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -172,31 +166,6 @@ public class UserService {
 
         userRepository.save(user);
         userRepository.save(friend);
-    }
-
-
-    public String uploadUserAvatar(Long userId, MultipartFile file) throws IOException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Получаем путь к корневой директории проекта
-        String projectRoot = System.getProperty("user.dir");  // Это путь к текущему рабочему каталогу, обычно корень вашего проекта
-
-        // Директория, куда будут сохраняться аватары относительно корневой директории проекта
-        String uploadDir = projectRoot + "/avatars/";
-        String originalFilename = file.getOriginalFilename();
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        String newFilename = "avatar_" + userId + fileExtension;
-
-        Path filePath = Paths.get(uploadDir + newFilename);
-        Files.createDirectories(filePath.getParent()); // Создание директории, если она еще не существует
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-        // Обновление ссылки на аватар в профиле пользователя
-        user.setAvatarUrl("/avatars/" + newFilename);
-        userRepository.save(user);
-
-        return user.getAvatarUrl();
     }
 }
 

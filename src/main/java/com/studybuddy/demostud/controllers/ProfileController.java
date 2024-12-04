@@ -1,8 +1,8 @@
 package com.studybuddy.demostud.controllers;
 
 import com.studybuddy.demostud.DTOs.*;
+import com.studybuddy.demostud.Service.AvatarService;
 import com.studybuddy.demostud.Service.LanguageService;
-import com.studybuddy.demostud.Service.UserService;
 import com.studybuddy.demostud.models.Language;
 import com.studybuddy.demostud.models.User;
 import com.studybuddy.demostud.models.disciplines_package.SubDiscipline;
@@ -11,6 +11,7 @@ import com.studybuddy.demostud.repository.DissciplineRepostory.SubDisciplineRepo
 import com.studybuddy.demostud.repository.DissciplineRepostory.UserSubDisciplineRepository;
 import com.studybuddy.demostud.repository.LanguageRepository;
 import com.studybuddy.demostud.repository.UserRepository;
+import org.springframework.core.io.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,17 +36,17 @@ public class ProfileController {
     private final UserRepository userRepository;
     private final UserSubDisciplineRepository userSubDisciplineRepository;
     private final LanguageRepository languageRepository;
-    private final UserService userService;
+    private final AvatarService avatarService;
 
     public ProfileController(LanguageService languageService, UserRepository userRepository,
                              UserSubDisciplineRepository userSubDisciplineRepository,
-                             SubDisciplineRepository subDisciplineRepository, LanguageRepository languageRepository, UserService userService) {
+                             SubDisciplineRepository subDisciplineRepository, LanguageRepository languageRepository, AvatarService avatarService) {
         this.languageService = languageService;
         this.userRepository = userRepository;
         this.userSubDisciplineRepository = userSubDisciplineRepository;
         this.subDisciplineRepository = subDisciplineRepository;
         this.languageRepository = languageRepository;
-        this.userService = userService;
+        this.avatarService = avatarService;
     }
 
     // Helper method to get the authenticated user
@@ -60,23 +57,17 @@ public class ProfileController {
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
     }
 
-    // Combined GetMapping for Username,About,Avatar  and Languages
+    // Combined GetMapping for Username,About and Languages
     @GetMapping("/details")
     public ResponseEntity<Map<String, Object>> getUserDetails(HttpServletRequest request) {
         User user = getAuthenticatedUser();
         Map<String, Object> response = new HashMap<>();
 
-        // Создание базового URL, который будет включать протокол, хост и порт
-        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
-
-        // Построение полного URL для аватара
-        String avatarUrl = user.getAvatarUrl() != null ? baseUrl + user.getAvatarUrl() : null;
 
         // Добавление данных пользователя в ответ
         response.put("username", user.getUsername());
         response.put("about", user.getAbout());
         response.put("languages", languageService.getLanguages(user.getId()));
-        response.put("avatarUrl", avatarUrl);
 
         return ResponseEntity.ok(response);
     }
@@ -84,49 +75,69 @@ public class ProfileController {
 
     // Avatar Upload
     @PostMapping("/avatar/upload")
-    public ResponseEntity<String> uploadUserAvatar(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, Object>> uploadAvatar(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
         User user = getAuthenticatedUser();
-        if (file == null || file.isEmpty()) {
-            return new ResponseEntity<>("Файл аватара не может быть пустым.", HttpStatus.BAD_REQUEST);
-        }
-
+        Map<String, Object> response = new HashMap<>();
         try {
-            // Путь к директории, где сохраняются аватары
-            String projectRoot = System.getProperty("user.dir");
-            String uploadDir = projectRoot + "/avatars/";
-
-            // Генерируем имя нового файла
-            String originalFilename = file.getOriginalFilename();
-            String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            String newFilename = "avatar_" + user.getId() + fileExtension;
-
-            // Путь к файлу
-            Path filePath = Paths.get(uploadDir + newFilename);
-
-            // Удаление старого файла аватара, если он существует
-            if (user.getAvatarUrl() != null) {
-                Path oldFilePath = Paths.get(projectRoot, user.getAvatarUrl());
-                System.out.println(oldFilePath);
-                System.out.println("cococooc");
-                Files.delete(oldFilePath); // Удаление старого файла аватара
-            }
-
-            // Создание директории, если она еще не существует
-            Files.createDirectories(filePath.getParent());
-
-            // Сохранение нового файла, перезапись если уже существует
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            // Обновление URL аватара в базе данных
-            user.setAvatarUrl("/avatars/" + newFilename);
-            userRepository.save(user);
-
-            return new ResponseEntity<>("Аватар пользователя обновлен успешно. URL: " + user.getAvatarUrl(), HttpStatus.OK);
+            String avatarUrl = avatarService.uploadAvatar(user.getId(), file);
+            response.put("message", "Avatar uploaded successfully");
+            response.put("avatarUrl", avatarUrl);
+            return ResponseEntity.ok(response);
         } catch (IOException e) {
-            return new ResponseEntity<>("Ошибка при загрузке аватара: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            response.put("message", "Failed to upload avatar");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
+    @PutMapping("/avatar/update")
+    public ResponseEntity<Map<String, Object>> updateAvatar(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
+        User user = getAuthenticatedUser();
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String avatarUrl = avatarService.updateAvatar(user.getId(), file);
+            response.put("message", "Avatar updated successfully");
+            response.put("avatarUrl", avatarUrl);
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            response.put("message", "Failed to update avatar");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @GetMapping("/avatar/my-get")
+    public ResponseEntity<Map<String, Object>> getMyAvatar(HttpServletRequest request) {
+        User user = getAuthenticatedUser();
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Resource file = avatarService.getAvatar(user.getId());
+            response.put("avatarUrl", user.getAvatarPath());
+            response.put("message", "Avatar retrieved successfully");
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            response.put("message", "Avatar not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @GetMapping("/avatar/other-get")
+    public ResponseEntity<Map<String, Object>> getAvatarById(@RequestParam Long userId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Resource file = avatarService.getAvatar(userId);
+            Optional<User> userOptional = userRepository.findById(userId);
+            if (userOptional.isPresent()) {
+                response.put("avatarUrl", userOptional.get().getAvatarPath());
+                response.put("message", "Avatar retrieved successfully");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "User not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (IOException e) {
+            response.put("message", "Avatar not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
 
 
     @GetMapping("/all-usernames")
