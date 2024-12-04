@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM maven:3.8-openjdk-21-slim as build
+FROM maven:3.8.8-openjdk-17-slim as build
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN mvn dependency:resolve
 RUN mvn package -DskipTests
 
 # Stage 2: Run
-FROM openjdk:21-slim
+FROM openjdk:17-slim
 
 WORKDIR /app
 
