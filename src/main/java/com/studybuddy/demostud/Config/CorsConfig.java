@@ -13,7 +13,7 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("https://project-studybuddy.vercel.app/"); // Allow React frontend
+        configuration.addAllowedOrigin("https://project-studybuddy.vercel.app"); // Allow React frontend
         configuration.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
         configuration.addAllowedHeader("*"); // Allow all headers
         configuration.setAllowCredentials(true); // Allow credentials like cookies or Authorization header
