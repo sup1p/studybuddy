@@ -1,9 +1,11 @@
 package com.studybuddy.demostud.controllers;
 
-import com.studybuddy.demostud.DTOs.MatchingResult;
+import com.studybuddy.demostud.DTOs.MatchingResultDefault;
 import com.studybuddy.demostud.DTOs.SearchRequest;
+import com.studybuddy.demostud.DTOs.UserSearchResponseDto;
 import com.studybuddy.demostud.Service.MatchingService;
 import com.studybuddy.demostud.models.User;
+import com.studybuddy.demostud.models.disciplines_package.SubDiscipline;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/user/matching")
@@ -32,13 +32,13 @@ public class MatchingController {
     }
 
     @GetMapping("/default")  //getting recommendations of possible buddies
-    public ResponseEntity<List<MatchingResult>> getDefaultRecommendations() {
+    public ResponseEntity<List<MatchingResultDefault>> getDefaultRecommendations() {
         User user = getAuthenticatedUser(); // current user
-        List<MatchingResult> matches = matchingService.getDefaultRecommendations(user.getId());
+        List<MatchingResultDefault> matches = matchingService.getDefaultRecommendations(user.getId());
 
         if (user.getId() != null) {
             matches = matches.stream()
-                    .filter(matchingResult -> matchingResult.getMyId().equals(user.getId()))
+                    .filter(matchingResultDefault -> matchingResultDefault.getMyId().equals(user.getId()))
                     .collect(Collectors.toList());
         }
 
@@ -46,31 +46,30 @@ public class MatchingController {
     }
 
     @PostMapping("/search")   // searching for buddies by specific disciplines that replace user's weaknesses
-    public ResponseEntity<List<MatchingResult>> searchMatchingPairs(@RequestBody SearchRequest searchRequest) {
-        User user = getAuthenticatedUser(); // get current authenticated user
-        Logger log = LoggerFactory.getLogger(this.getClass());
+    public ResponseEntity<List<UserSearchResponseDto>> searchMatchingPairs(@RequestBody SearchRequest searchRequest) {
+        User currentUser = getAuthenticatedUser(); // get current authenticated user
+        List<String> weakSubjects = searchRequest.getWeakSubjects();
+        String genderFilter = searchRequest.getGenderFilter();
+        boolean locationFilter = searchRequest.isLocationFilter();
+        List<User> matchingUsers = matchingService.findMatchingUsers(currentUser, weakSubjects, genderFilter, locationFilter);
 
+        List<UserSearchResponseDto> response = matchingUsers.stream()
+                .map(user -> {
+                    // Получаем дисциплины пользователя из user_sub_discipline
+                    List<SubDiscipline> disciplines = MatchingService.findSubjectsByUserId(user.getId());
 
-        boolean locationFilter = searchRequest.isLocationFilter(); // turn on/off location filter
-        String genderFilter = searchRequest.getGenderFilter(); // get gender filter (e.g., male, female, doesn't matter)
+                    // Создаем DTO
+                    return new UserSearchResponseDto(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getCountry(),
+                            disciplines,
+                            user.getAvatarPath()
+                    );
+                })
+                .toList();
 
-        log.info("User ID: {}", user.getId());
-        log.info("Weak Subjects: {}", searchRequest.getWeakSubjects());
-        log.info("Gender Filter: {}", genderFilter);
-        log.info("Location Filter: {}", locationFilter);
-
-        List<MatchingResult> matches = matchingService.findMatchesWithWeakSubjects(
-                user.getId(),
-                searchRequest.getWeakSubjects(),
-                genderFilter,
-                locationFilter
-        );
-
-        log.info("Matches found: {}", matches.size());
-
-        // No need to filter by user ID here, as matchingService already returns the correct results
-        return ResponseEntity.ok(matches);
+        return ResponseEntity.ok(response);
     }
-
 }
 

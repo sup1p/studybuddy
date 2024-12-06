@@ -1,7 +1,7 @@
 
 package com.studybuddy.demostud.DTOs;
 
-public class MatchingResult {
+public class MatchingResultDefault {
     private Long MyId;
     private Long BuddiesId;
     private String BuddiesName;
@@ -9,7 +9,7 @@ public class MatchingResult {
     private String BuddieHelpToMeSubjects;
     private Long totalScore;
 
-    public MatchingResult(Long MyId, Long BuddiesId, String BuddiesName, String MyHelpToBuddieSubjects, String BuddieHelpToMeSubjects, Long totalScore) {
+    public MatchingResultDefault(Long MyId, Long BuddiesId, String BuddiesName, String MyHelpToBuddieSubjects, String BuddieHelpToMeSubjects, Long totalScore) {
         this.MyId = MyId;
         this.BuddiesId = BuddiesId;
         this.BuddiesName = BuddiesName;
