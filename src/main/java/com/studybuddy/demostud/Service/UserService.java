@@ -11,6 +11,7 @@ import com.studybuddy.demostud.repository.FriendsRequestRepository;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +37,8 @@ public class UserService {
         return user.getFriends().stream()
                 .map(friend -> new FriendsInfo(
                         friend.getId(),
-                        friend.getUsername()
+                        friend.getUsername(),
+                        friend.getAvatarPath()
                 ))
                 .collect(Collectors.toList());
     }
@@ -172,10 +174,13 @@ public class UserService {
         userRepository.save(friend);
     }
 
+    @Transactional
     public void deleteUserAndRelations(User user) {
         userRepository.deleteByRolesUserId(user.getId());
         userRepository.deleteUserLanguagesByUserId(user.getId());
+        userRepository.deleteUserFriendsByUserId(user.getId());
         userSubDisciplineRepository.deleteByUserId(user.getId());
+        friendsRequestRepository.deleteByUserId(user.getId());
 
         userRepository.delete(user);
     }

@@ -5,17 +5,27 @@ public class MatchingResultDefault {
     private Long MyId;
     private Long BuddiesId;
     private String BuddiesName;
+    private String BuddiesAvatarPath;
     private String MyHelpToBuddieSubjects;
     private String BuddieHelpToMeSubjects;
     private Long totalScore;
 
-    public MatchingResultDefault(Long MyId, Long BuddiesId, String BuddiesName, String MyHelpToBuddieSubjects, String BuddieHelpToMeSubjects, Long totalScore) {
+    public MatchingResultDefault(Long MyId, Long BuddiesId, String BuddiesName, String buddiesAvatarPath,String MyHelpToBuddieSubjects, String BuddieHelpToMeSubjects, Long totalScore) {
         this.MyId = MyId;
         this.BuddiesId = BuddiesId;
         this.BuddiesName = BuddiesName;
+        this.BuddiesAvatarPath = buddiesAvatarPath;
         this.MyHelpToBuddieSubjects = MyHelpToBuddieSubjects;
         this.BuddieHelpToMeSubjects = BuddieHelpToMeSubjects;
         this.totalScore = totalScore;
+    }
+
+    public String getBuddiesAvatarPath() {
+        return BuddiesAvatarPath;
+    }
+
+    public void setBuddiesAvatarPath(String buddiesAvatarPath) {
+        BuddiesAvatarPath = buddiesAvatarPath;
     }
 
     public Long getBuddiesId() {

@@ -41,12 +41,13 @@ public class MatchingService {
         // Transform result of SQL-request into DTO
         return results.stream()
                 .map(row -> new MatchingResultDefault(
-                        (Long) row[0], // matching_user_id
+                        (Long) row[0], // my_id
                         (Long) row[1], // buddies_id
                         (String) row[2], // buddies_username
-                        (String) row[3], // help_provided_subjects
-                        (String) row[4], // help_needed_subjects
-                        (Long) row[5]  // total_score
+                        (String) row[3], // buddie avatar path
+                        (String) row[4], //buddie help_needed_subjects
+                        (String) row[5], //buddie help_provided_subjects
+                        (Long) row[6]  // total_score
                 ))
                 .collect(Collectors.toList());
     }

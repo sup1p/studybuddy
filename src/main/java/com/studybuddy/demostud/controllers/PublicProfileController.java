@@ -46,6 +46,7 @@ public class PublicProfileController {
         response.put("languages", user.getLanguages());
         response.put("country", user.getCountry());
         response.put("numberOfFriends", user.getFriends().size());
+        response.put("avatarPath", user.getAvatarPath());
         response.put("about", user.getAbout());
         response.put("male", user.getGender());
 
