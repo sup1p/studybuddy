@@ -4,6 +4,7 @@ import com.studybuddy.demostud.Config.JwtUtils;
 import com.studybuddy.demostud.DTOs.LoginResponse;
 import com.studybuddy.demostud.DTOs.RegisterRequest;
 import com.studybuddy.demostud.DTOs.LoginRequest;
+import com.studybuddy.demostud.Service.UserService;
 import com.studybuddy.demostud.models.Role;
 import com.studybuddy.demostud.models.User;
 import com.studybuddy.demostud.repository.RoleRepository;
@@ -34,13 +35,15 @@ public class MainController {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
+    private final UserService userService;
 
-    public MainController(RoleRepository roleRepository, UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JwtUtils jwtUtils, AuthenticationManager authenticationManager) {
+    public MainController(RoleRepository roleRepository, UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JwtUtils jwtUtils, AuthenticationManager authenticationManager, UserService userService) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;
+        this.userService = userService;
     }
 
     // Helper method to get the authenticated user
@@ -154,7 +157,8 @@ public class MainController {
     public ResponseEntity<String> deleteUserAccount() {
         logger.info("DELETE /settings/delete called");
         User user = getAuthenticatedUser(); // Получаем текущего пользователя
-        userRepository.delete(user);
-        return new ResponseEntity<>("User account deleted successfully.", HttpStatus.OK);
+
+        userService.deleteUserAndRelations(user); // Удаляем пользователя и связанные записи
+        return new ResponseEntity<>("Аккаунт пользователя и связанные данные успешно удалены.", HttpStatus.OK);
     }
 }

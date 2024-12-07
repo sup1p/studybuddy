@@ -2,8 +2,10 @@ package com.studybuddy.demostud.repository.DissciplineRepostory;
 
 import com.studybuddy.demostud.models.disciplines_package.UserSubDiscipline;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,4 +66,9 @@ public interface UserSubDisciplineRepository extends JpaRepository<UserSubDiscip
     """, nativeQuery = true)
         //рекомендации, лишь возвращает студентов на основе заранее определенных на аккаунте слабых дисциплин
     List<Object[]> findMatchingPairsWithScores();
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM UserSubDiscipline usd WHERE usd.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 }

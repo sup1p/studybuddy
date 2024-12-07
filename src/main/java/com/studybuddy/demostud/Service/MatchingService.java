@@ -18,8 +18,12 @@ import java.util.stream.Collectors;
 @Service
 public class MatchingService {
 
-    @Autowired
     private static UserSubDisciplineRepository userSubDisciplineRepository;
+
+    @Autowired
+    public void setUserSubDisciplineRepository(UserSubDisciplineRepository repository) {
+        userSubDisciplineRepository = repository;
+    }
 
     @Autowired
     private UserRepository userRepository;

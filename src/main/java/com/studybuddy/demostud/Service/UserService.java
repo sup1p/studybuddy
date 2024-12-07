@@ -6,6 +6,7 @@ import com.studybuddy.demostud.DTOs.FriendsInfo;
 import com.studybuddy.demostud.enums.RequestStatus;
 import com.studybuddy.demostud.models.FriendRequest;
 import com.studybuddy.demostud.models.User;
+import com.studybuddy.demostud.repository.DissciplineRepostory.UserSubDisciplineRepository;
 import com.studybuddy.demostud.repository.FriendsRequestRepository;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class UserService {
 
     @Autowired
     private FriendsRequestRepository friendsRequestRepository;
+    @Autowired
+    private UserSubDisciplineRepository userSubDisciplineRepository;
+
 
     //return list of users friends
     public List<FriendsInfo> getFriends(Long userId) {
@@ -166,6 +170,14 @@ public class UserService {
 
         userRepository.save(user);
         userRepository.save(friend);
+    }
+
+    public void deleteUserAndRelations(User user) {
+        userRepository.deleteByRolesUserId(user.getId());
+        userRepository.deleteUserLanguagesByUserId(user.getId());
+        userSubDisciplineRepository.deleteByUserId(user.getId());
+
+        userRepository.delete(user);
     }
 }
 
