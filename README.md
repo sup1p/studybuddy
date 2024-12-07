@@ -15,6 +15,7 @@
 ### Ссылки
 - [Frontend приложение](https://github.com/Rakamoosaka/ProjectStudyBuddy)
 - [Backend API документация](https://github.com/sup1p/studybuddy/blob/main/API)
+- [Deployed website](https://project-studybuddy.vercel.app)
 
 ---
 
