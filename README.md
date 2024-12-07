@@ -14,7 +14,7 @@
 
 ### Ссылки
 - [Frontend приложение](https://github.com/Rakamoosaka/ProjectStudyBuddy)
-- [Backend API документация](https://api.example.com/docs)
+- [Backend API документация](https://github.com/sup1p/studybuddy/blob/main/API)
 
 ---
 
