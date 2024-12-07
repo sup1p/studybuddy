@@ -1,0 +1,217 @@
+# API Документация
+
+## Основной URL API
+`https://example.com/api`
+
+---
+
+## 1. **FriendController**
+
+### Получить список друзей
+- **URL**: `/user/friends/show`
+- **Метод**: `GET`
+- **Описание**: Возвращает список всех друзей пользователя.
+- **Пример ответа**:
+
+[
+    {"id": 1, "username": "friend1"},
+    {"id": 2, "username": "friend2"}
+]
+
+
+### Отправить запрос в друзья
+- **URL**: `/user/friends/send-request`
+- **Метод**: `POST`
+- **Описание**: Отправляет запрос в друзья.
+- **Тело запроса**:
+
+{
+    "username": "friend_username"
+}
+
+
+### Принять запрос в друзья
+- **URL**: `/user/friends/requests/{requestId}/accept`
+- **Метод**: `POST`
+- **Описание**: Принимает запрос в друзья.
+
+### Удалить друга
+- **URL**: `/user/friends/delete/{friendId}`
+- **Метод**: `DELETE`
+- **Описание**: Удаляет друга.
+
+---
+
+## 2. **MainController**
+
+### Регистрация
+- **URL**: `/auth/register`
+- **Метод**: `POST`
+- **Описание**: Регистрирует нового пользователя.
+- **Тело запроса**:
+
+{
+    "username": "new_user",
+    "email": "user@example.com",
+    "password": "password123",
+    "gender": "male",
+    "dateOfBirth": "2000-01-01"
+}
+
+
+### Логин
+- **URL**: `/auth/login`
+- **Метод**: `POST`
+- **Описание**: Авторизация пользователя.
+- **Тело запроса**:
+
+{
+    "email": "user@example.com",
+    "password": "password123"
+}
+
+- **Пример ответа**:
+
+{
+    "token": "jwt_token",
+    "username": "new_user"
+}
+
+
+### Удаление аккаунта
+- **URL**: `/user/settings/delete`
+- **Метод**: `DELETE`
+- **Описание**: Удаляет текущий аккаунт.
+
+---
+
+## 3. **ProfileController**
+
+### Получить данные профиля
+- **URL**: `/user/profile/details`
+- **Метод**: `GET`
+- **Описание**: Возвращает информацию о текущем пользователе.
+- **Пример ответа**:
+
+{
+    "username": "user123",
+    "about": "I love coding",
+    "languages": ["English", "Russian"]
+}
+
+
+### Загрузить аватар
+- **URL**: `/user/profile/avatar/upload`
+- **Метод**: `POST`
+- **Описание**: Загружает аватар пользователя.
+- **Пример ответа**:
+
+{
+    "message": "Avatar uploaded successfully",
+    "avatarUrl": "https://example.com/avatars/user123.jpg"
+}
+
+
+### Получить список всех дисциплин
+- **URL**: `/user/profile/all-disciplines`
+- **Метод**: `GET`
+- **Описание**: Возвращает список всех доступных дисциплин.
+- **Пример ответа**:
+
+[
+    {"id": 1, "name": "Mathematics"},
+    {"id": 2, "name": "Physics"}
+]
+
+
+### Добавить дисциплину пользователю
+- **URL**: `/user/profile/discipline/add`
+- **Метод**: `POST`
+- **Описание**: Добавляет дисциплину и уровень навыка пользователю.
+- **Тело запроса**:
+
+{
+    "subDisciplineId": 1,
+    "skillLevel": 5
+}
+
+
+---
+
+## 4. **MatchingController**
+
+### Рекомендации
+- **URL**: `/user/matching/default`
+- **Метод**: `GET`
+- **Пример ответа**:
+
+[
+    {"id": 1, "username": "buddy1", "sharedInterests": ["Math", "Physics"]},
+    {"id": 2, "username": "buddy2", "sharedInterests": ["Programming"]}
+]
+
+
+### Поиск пользователей
+- **URL**: `/user/matching/search`
+- **Метод**: `POST`
+- **Тело запроса**:
+
+{
+    "weakSubjects": ["Physics"],
+    "genderFilter": "male",
+    "locationFilter": true
+}
+
+- **Пример ответа**:
+
+[
+    {"id": 3, "username": "helper_user", "sharedSkills": ["Physics"]}
+]
+
+
+---
+
+## 5. **PublicProfileController**
+
+### Получить данные публичного профиля
+- **URL**: `/public/profile/{userId}`
+- **Метод**: `GET`
+- **Описание**: Возвращает данные профиля другого пользователя.
+- **Пример ответа**:
+
+{
+    "username": "user456",
+    "age": 23,
+    "languages": ["English"],
+    "country": "USA",
+    "about": "I enjoy learning",
+    "numberOfFriends": 5
+}
+
+
+### Получить дисциплины другого пользователя
+- **URL**: `/public/profile/{userId}/disciplines`
+- **Метод**: `GET`
+- **Описание**: Возвращает список дисциплин другого пользователя.
+- **Пример ответа**:
+
+[
+    {
+        "id": 1,
+        "name": "Mathematics",
+        "categoryName": "Science",
+        "skillLevel": 8
+    },
+    {
+        "id": 2,
+        "name": "Physics",
+        "categoryName": "Science",
+        "skillLevel": 7
+    }
+]
+
+
+---
+
+Если нужно что-то дополнить или уточнить, дайте знать!
+
