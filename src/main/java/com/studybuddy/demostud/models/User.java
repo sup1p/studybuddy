@@ -22,10 +22,8 @@ public class User {
     private String password;
     @Column(unique = true, nullable = false)
     private String email;
-    @Column(nullable = false)
     private String system_language;
     private LocalDate dateOfBirth;
-    @Column(nullable = false)
     private String country;
     private String about;
     @Column(nullable = false)
