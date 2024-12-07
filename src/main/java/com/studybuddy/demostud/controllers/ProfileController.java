@@ -89,21 +89,6 @@ public class ProfileController {
         }
     }
 
-    @PutMapping("/avatar/update")
-    public ResponseEntity<Map<String, Object>> updateAvatar(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
-        User user = getAuthenticatedUser();
-        Map<String, Object> response = new HashMap<>();
-        try {
-            String avatarUrl = avatarService.updateAvatar(user.getId(), file);
-            response.put("message", "Avatar updated successfully");
-            response.put("avatarUrl", avatarUrl);
-            return ResponseEntity.ok(response);
-        } catch (IOException e) {
-            response.put("message", "Failed to update avatar");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
     @GetMapping("/avatar/my-get")
     public ResponseEntity<Map<String, Object>> getMyAvatar(HttpServletRequest request) {
         User user = getAuthenticatedUser();
