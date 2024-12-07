@@ -1,1 +1,38 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - main  # pipeline only acticates when we pull using mainn
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3  # clones code from pull request
+
+    - name: Set up Java
+      uses: actions/setup-java@v3  # setups java
+      with:
+        java-version: '22'  
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3  # Кcashes dependencies in maven for faster load
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
+    - name: Install dependencies
+      run: mvn install -DskipTests=true  # setups maven dependenciees without run
+
+    - name: Run tests
+      run: mvn test  # runs test of project
+
+    - name: Verify code quality (optional)
+      run: mvn verify  # extra check for the code with standarts
 
