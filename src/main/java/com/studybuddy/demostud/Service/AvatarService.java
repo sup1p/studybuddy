@@ -2,23 +2,27 @@ package com.studybuddy.demostud.Service;
 
 import com.studybuddy.demostud.models.User;
 import com.studybuddy.demostud.repository.UserRepository;
-import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+import org.springframework.core.io.UrlResource;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 @Service
 public class AvatarService {
 
     private final UserRepository userRepository;
-    private final String uploadDir = "uploads/avatars/";
-    private final String baseUrl = "http://localhost:8080/avatars/";
+    private final Storage storage = StorageOptions.getDefaultInstance().getService();
+    private final String bucketName = "user-avatars-bucket";
+    private final String baseUrl = "https://storage.googleapis.com/" + bucketName + "/";
 
     public AvatarService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -29,28 +33,22 @@ public class AvatarService {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             String fileName = userId + "_avatar_" + file.getOriginalFilename();
-            Path filePath = Paths.get(uploadDir + fileName);
-            Files.createDirectories(filePath.getParent());
-            Files.write(filePath, file.getBytes());
+
+            // Создаем BlobId и BlobInfo
+            BlobId blobId = BlobId.of(bucketName, fileName);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.getContentType()).build();
+
+            // Загружаем файл в Cloud Storage
+            storage.create(blobInfo, file.getBytes());
+
+            // Генерируем публичный URL
             String avatarUrl = baseUrl + fileName;
+
+            // Сохраняем путь к аватару в базе данных
             user.setAvatarPath(avatarUrl);
             userRepository.save(user);
-            return avatarUrl;
-        }
-        throw new IOException("User not found");
-    }
 
-    public String updateAvatar(Long userId, MultipartFile file) throws IOException {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            // Удалить старый аватар, если он существует
-            if (user.getAvatarPath() != null) {
-                Path oldFilePath = Paths.get(uploadDir + user.getAvatarPath().replace(baseUrl, ""));
-                Files.deleteIfExists(oldFilePath);
-            }
-            // Загрузить новый аватар
-            return uploadAvatar(userId, file);
+            return avatarUrl;
         }
         throw new IOException("User not found");
     }
@@ -60,13 +58,16 @@ public class AvatarService {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             if (user.getAvatarPath() != null) {
-                Path filePath = Paths.get(uploadDir + user.getAvatarPath().replace(baseUrl, ""));
-                if (Files.exists(filePath)) {
-                    return new PathResource(filePath);
+                try {
+                    URL avatarUrl = new URL(user.getAvatarPath());
+                    return new UrlResource(avatarUrl);
+                } catch (MalformedURLException e) {
+                    throw new IOException("Invalid URL for avatar", e);
                 }
             }
         }
         throw new IOException("Avatar not found");
     }
 }
+
 
