@@ -53,4 +53,13 @@ public class UserSubDiscipline {
     public void setSkillLevel(int skillLevel) {
         this.skillLevel = skillLevel;
     }
+
+
+    @Override
+    public String toString() {
+        return "UserSubDiscipline{id=" + id +
+                ", skillLevel=" + skillLevel +
+                ", subDiscipline=" + (subDiscipline != null ? subDiscipline.getName() : "null") +
+                "}";
+    }
 }

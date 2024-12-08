@@ -82,20 +82,27 @@ public class UserService {
 
         List<FriendRequest> friendRequests = friendsRequestRepository.findBySender(sender);
 
-        //user stream api to Map every required value to list
+        String senderAvatarPath = sender.getAvatarPath(); // Аватар отправителя (текущего пользователя)
+
         return friendRequests.stream()
-                .filter(request -> request.getStatus() == RequestStatus.PENDING) //also show only requests that is pending
-                .map(request -> new FriendRequestResponse(
-                        request.getId(),
-                        request.getSender().getId(),
-                        request.getSender().getUsername(),
-                        request.getReceiver().getId(),
-                        request.getReceiver().getUsername(),
-                        request.getStatus().name()
-                ))
+                .filter(request -> request.getStatus() == RequestStatus.PENDING) // Только ожидающие запросы
+                .map(request -> {
+                    // Аватар получателя
+                    String receiverAvatarPath = request.getReceiver().getAvatarPath();
+
+                    return new FriendRequestResponse(
+                            request.getId(),
+                            request.getSender().getId(),
+                            request.getSender().getUsername(),
+                            request.getReceiver().getId(),
+                            request.getReceiver().getUsername(),
+                            request.getStatus().name(),
+                            senderAvatarPath, // Аватар отправителя
+                            receiverAvatarPath // Аватар получателя
+                    );
+                })
                 .collect(Collectors.toList());
     }
-
     //return request sent to user
     public List<FriendRequestResponse> getRequestsToMe(Long userId) {
         User receiver = userRepository.findById(userId)
@@ -103,17 +110,25 @@ public class UserService {
 
         List<FriendRequest> friendRequests = friendsRequestRepository.findByReceiver(receiver);
 
-        //use stream to map every value to list and access only requests with status PENDING
+        String receiverAvatarPath = receiver.getAvatarPath(); // Аватар текущего пользователя
+
         return friendRequests.stream()
-                .filter(request -> request.getStatus() == RequestStatus.PENDING)
-                .map(request -> new FriendRequestResponse(
-                        request.getId(),
-                        request.getSender().getId(),
-                        request.getSender().getUsername(),
-                        request.getReceiver().getId(),
-                        request.getReceiver().getUsername(),
-                        request.getStatus().name()
-                ))
+                .filter(request -> request.getStatus() == RequestStatus.PENDING) // Только ожидающие запросы
+                .map(request -> {
+                    // Аватар отправителя
+                    String senderAvatarPath = request.getSender().getAvatarPath();
+
+                    return new FriendRequestResponse(
+                            request.getId(),
+                            request.getSender().getId(),
+                            request.getSender().getUsername(),
+                            request.getReceiver().getId(),
+                            request.getReceiver().getUsername(),
+                            request.getStatus().name(),
+                            senderAvatarPath, // Аватар отправителя
+                            receiverAvatarPath // Аватар получателя
+                    );
+                })
                 .collect(Collectors.toList());
     }
 

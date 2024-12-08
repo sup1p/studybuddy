@@ -18,6 +18,14 @@ public class FriendRequest {
     @JoinColumn(name = "receiver_id")
     private User receiver;
 
+    @ManyToOne
+    @JoinColumn(name = "sender_avatar_url")
+    private User senderAvatarURL;
+
+    @ManyToOne
+    @JoinColumn(name = "receiver_avatar_url")
+    private User receiverAvatarURL;
+
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
 
@@ -51,5 +59,21 @@ public class FriendRequest {
 
     public void setStatus(RequestStatus status) {
         this.status = status;
+    }
+
+    public User getSenderAvatarURL() {
+        return senderAvatarURL;
+    }
+
+    public void setSenderAvatarURL(User senderAvatarURL) {
+        this.senderAvatarURL = senderAvatarURL;
+    }
+
+    public User getReceiverAvatarURL() {
+        return receiverAvatarURL;
+    }
+
+    public void setReceiverAvatarURL(User receiverAvatarURL) {
+        this.receiverAvatarURL = receiverAvatarURL;
     }
 }

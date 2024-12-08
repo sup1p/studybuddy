@@ -2,23 +2,24 @@ package com.studybuddy.demostud.Service;
 
 import com.studybuddy.demostud.DTOs.MatchingResultDefault;
 import com.studybuddy.demostud.models.User;
+import com.studybuddy.demostud.models.disciplines_package.MatchingUser;
 import com.studybuddy.demostud.models.disciplines_package.SubDiscipline;
 import com.studybuddy.demostud.models.disciplines_package.UserSubDiscipline;
+import com.studybuddy.demostud.repository.DissciplineRepostory.SubDisciplineRepository;
 import com.studybuddy.demostud.repository.DissciplineRepostory.UserSubDisciplineRepository;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class MatchingService {
 
     private static UserSubDisciplineRepository userSubDisciplineRepository;
+    @Autowired
+    private SubDisciplineRepository subDisciplineRepository;
 
     @Autowired
     public void setUserSubDisciplineRepository(UserSubDisciplineRepository repository) {
@@ -52,7 +53,7 @@ public class MatchingService {
                 .collect(Collectors.toList());
     }
 
-    public List<User> findMatchingUsers(User currentUser, List<String> weakSubjects, String genderFilter, boolean locationFilter) {
+    public List<MatchingUser> findMatchingUsers(User currentUser, List<String> weakSubjects, String genderFilter, boolean locationFilter) {
         // Преобразуем названия дисциплин в сущности
         List<SubDiscipline> weakDisciplines = mapDisciplinesToEntities(weakSubjects);
 
@@ -82,17 +83,38 @@ public class MatchingService {
         // Рассчитываем очки для каждого пользователя
         Map<User, Integer> userScores = calculateMatchingScores(currentUser, weakDisciplines, filteredUsers);
 
-        // Сортируем по очкам
+        // Преобразуем в список MatchingUser
         return userScores.entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue() - e1.getValue())
-                .map(Map.Entry::getKey)
+                .sorted((e1, e2) -> e2.getValue() - e1.getValue()) // Сортировка по очкам
+                .map(entry -> new MatchingUser(entry.getKey(), entry.getValue())) // Преобразуем в MatchingUser
                 .toList();
     }
 
     private List<SubDiscipline> mapDisciplinesToEntities(List<String> disciplineNames) {
-        // Здесь должна быть логика преобразования названий в сущности Discipline
-        return new ArrayList<>();
+        // Получаем список субдисциплин по названиям
+        List<SubDiscipline> disciplines = subDisciplineRepository.findByNameIn(disciplineNames);
+
+        // Проверяем, найдены ли все дисциплины
+        List<String> missingNames = disciplineNames.stream()
+                .filter(name -> disciplines.stream().noneMatch(d -> d.getName().equalsIgnoreCase(name)))
+                .toList();
+
+        if (!missingNames.isEmpty()) {
+            System.err.println("Следующие субдисциплины не найдены: " + missingNames);
+        }
+
+        // Убираем категории
+        return disciplines.stream()
+                .map(discipline -> {
+                    SubDiscipline copy = new SubDiscipline();
+                    copy.setId(discipline.getId());
+                    copy.setName(discipline.getName());
+                    copy.setCategory(null); // Убираем категорию
+                    return copy;
+                })
+                .toList();
     }
+
 
     private List<UserSubDiscipline> filterUsersByDisciplines(
             List<UserSubDiscipline> users,
@@ -115,38 +137,56 @@ public class MatchingService {
     private Map<User, Integer> calculateMatchingScores(User currentUser, List<SubDiscipline> disciplines, List<UserSubDiscipline> users) {
         Map<User, Integer> userScores = new HashMap<>();
 
+        // Получаем дисциплины текущего пользователя
         List<UserSubDiscipline> currentUserSubDisciplines = userSubDisciplineRepository.findAll().stream()
                 .filter(ud -> ud.getUser().equals(currentUser) && disciplines.contains(ud.getSubDiscipline()))
                 .toList();
 
-        for (UserSubDiscipline user : users) {
+        System.out.println("Current user disciplines: " + currentUserSubDisciplines);
+
+        for (UserSubDiscipline userSub : users) {
+            User user = userSub.getUser();
             int score = 0;
+
+            // Получаем дисциплины другого пользователя
             List<UserSubDiscipline> userDisciplines = userSubDisciplineRepository.findAll().stream()
                     .filter(ud -> ud.getUser().equals(user))
                     .toList();
 
+            System.out.println("User: " + user.getUsername() + ", Disciplines: " + userDisciplines);
+
             for (UserSubDiscipline currentDiscipline : currentUserSubDisciplines) {
                 for (UserSubDiscipline userSubDiscipline : userDisciplines) {
                     if (currentDiscipline.getSubDiscipline().equals(userSubDiscipline.getSubDiscipline())) {
+                        System.out.println("Match found: " + currentDiscipline.getSubDiscipline().getName());
+
                         // Сильные знания
                         if (userSubDiscipline.getSkillLevel() >= 6 && userSubDiscipline.getSkillLevel() <= 7) {
                             score += 10;
                         } else if (userSubDiscipline.getSkillLevel() >= 8) {
                             score += 15;
                         }
+
                         // Взаимопомощь
                         if (currentDiscipline.getSkillLevel() >= 8 && userSubDiscipline.getSkillLevel() <= 3) {
                             score += 7;
                         } else if (currentDiscipline.getSkillLevel() >= 6 && userSubDiscipline.getSkillLevel() <= 5) {
                             score += 3;
                         }
+
+                        System.out.println("Score for this match: " + score);
                     }
                 }
             }
-            userScores.put(user.getUser(), score);
+
+            System.out.println("Total score for user " + user.getUsername() + ": " + score);
+            userScores.put(user, score);
         }
+
         return userScores;
     }
+
+
 }
 
 
