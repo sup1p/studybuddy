@@ -5,6 +5,7 @@ import com.studybuddy.demostud.DTOs.SearchRequest;
 import com.studybuddy.demostud.DTOs.UserSearchResponseDto;
 import com.studybuddy.demostud.Service.MatchingService;
 import com.studybuddy.demostud.models.User;
+import com.studybuddy.demostud.models.disciplines_package.MatchingUser;
 import com.studybuddy.demostud.models.disciplines_package.SubDiscipline;
 import com.studybuddy.demostud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,31 +46,39 @@ public class MatchingController {
         return ResponseEntity.ok(matches);
     }
 
-    @PostMapping("/search")   // searching for buddies by specific disciplines that replace user's weaknesses
+    @PostMapping("/search")   // Searching for buddies by specific disciplines that replace user's weaknesses
     public ResponseEntity<List<UserSearchResponseDto>> searchMatchingPairs(@RequestBody SearchRequest searchRequest) {
-        User currentUser = getAuthenticatedUser(); // get current authenticated user
+        User currentUser = getAuthenticatedUser(); // Get current authenticated user
         List<String> weakSubjects = searchRequest.getWeakSubjects();
         String genderFilter = searchRequest.getGenderFilter();
         boolean locationFilter = searchRequest.isLocationFilter();
-        List<User> matchingUsers = matchingService.findMatchingUsers(currentUser, weakSubjects, genderFilter, locationFilter);
 
+        // Получаем список MatchingUser с расчетом matchingScore
+        List<MatchingUser> matchingUsers = matchingService.findMatchingUsers(currentUser, weakSubjects, genderFilter, locationFilter);
+
+        // Преобразуем список MatchingUser в список DTO
         List<UserSearchResponseDto> response = matchingUsers.stream()
-                .map(user -> {
-                    // Получаем дисциплины пользователя из user_sub_discipline
+                .map(matchingUser -> {
+                    User user = matchingUser.getUser(); // Извлекаем пользователя
+                    int matchingScore = matchingUser.getMatchingScore(); // Получаем matchingScore
+
+                    // Получаем дисциплины пользователя
                     List<SubDiscipline> disciplines = MatchingService.findSubjectsByUserId(user.getId());
 
-                    // Создаем DTO
+                    // Создаем DTO, включая matchingScore
                     return new UserSearchResponseDto(
                             user.getId(),
                             user.getUsername(),
                             user.getCountry(),
                             disciplines,
-                            user.getAvatarPath()
+                            user.getAvatarPath(),
+                            matchingScore // Добавляем matchingScore
                     );
                 })
                 .toList();
 
         return ResponseEntity.ok(response);
     }
+
 }
 

@@ -10,19 +10,28 @@ public class UserSearchResponseDto {
     private String country;
     private List<SubDiscipline> disciplines;
     private String avatar;
+    private int matchingScore; // Новое поле для matchingScore
 
-    // Конструктор
-    public UserSearchResponseDto(Long id, String username, String country, List<SubDiscipline> disciplines, String avatar) {
+    public UserSearchResponseDto(Long id, String username, String country, List<SubDiscipline> disciplines, String avatar, int matchingScore) {
         this.id = id;
         this.username = username;
         this.country = country;
         this.disciplines = disciplines;
         this.avatar = avatar;
+        this.matchingScore = matchingScore;
     }
 
     // Геттеры и сеттеры
     public Long getId() {
         return id;
+    }
+
+    public int getMatchingScore() {
+        return matchingScore;
+    }
+
+    public void setMatchingScore(int matchingScore) {
+        this.matchingScore = matchingScore;
     }
 
     public void setId(Long id) {
