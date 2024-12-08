@@ -5,14 +5,16 @@ import com.studybuddy.demostud.models.disciplines_package.SubDiscipline;
 import java.util.List;
 
 public class UserSearchResponseDto {
-    private Long id;
-    private String username;
-    private String country;
-    private List<SubDiscipline> disciplines;
-    private String avatar;
-    private int matchingScore; // Новое поле для matchingScore
+    private final Long id;
+    private final String username;
+    private final String country;
+    private final List<SubDisciplineWithSkillLevelDto> disciplines; // Обновлено
+    private final String avatar;
+    private final int matchingScore;
 
-    public UserSearchResponseDto(Long id, String username, String country, List<SubDiscipline> disciplines, String avatar, int matchingScore) {
+    public UserSearchResponseDto(Long id, String username, String country,
+                                 List<SubDisciplineWithSkillLevelDto> disciplines,
+                                 String avatar, int matchingScore) {
         this.id = id;
         this.username = username;
         this.country = country;
@@ -22,52 +24,29 @@ public class UserSearchResponseDto {
     }
 
     // Геттеры и сеттеры
+
     public Long getId() {
         return id;
-    }
-
-    public int getMatchingScore() {
-        return matchingScore;
-    }
-
-    public void setMatchingScore(int matchingScore) {
-        this.matchingScore = matchingScore;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getUsername() {
         return username;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public String getCountry() {
         return country;
     }
 
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public List<SubDiscipline> getDisciplines() {
+    public List<SubDisciplineWithSkillLevelDto> getDisciplines() {
         return disciplines;
-    }
-
-    public void setDisciplines(List<SubDiscipline> disciplines) {
-        this.disciplines = disciplines;
     }
 
     public String getAvatar() {
         return avatar;
     }
 
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
+    public int getMatchingScore() {
+        return matchingScore;
     }
 }
 

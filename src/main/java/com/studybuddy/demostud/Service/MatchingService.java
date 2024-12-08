@@ -1,6 +1,7 @@
 package com.studybuddy.demostud.Service;
 
 import com.studybuddy.demostud.DTOs.MatchingResultDefault;
+import com.studybuddy.demostud.DTOs.SubDisciplineWithSkillLevelDto;
 import com.studybuddy.demostud.models.User;
 import com.studybuddy.demostud.models.disciplines_package.MatchingUser;
 import com.studybuddy.demostud.models.disciplines_package.SubDiscipline;
@@ -29,10 +30,13 @@ public class MatchingService {
     @Autowired
     private UserRepository userRepository;
 
-    public static List<SubDiscipline> findSubjectsByUserId(Long userId) {
+    public static List<SubDisciplineWithSkillLevelDto> findSubjectsByUserId(Long userId) {
         return userSubDisciplineRepository.findByUserId(userId)
                 .stream()
-                .map(UserSubDiscipline::getSubDiscipline)
+                .map(userSubDiscipline -> new SubDisciplineWithSkillLevelDto(
+                        userSubDiscipline.getSubDiscipline(),
+                        userSubDiscipline.getSkillLevel()
+                ))
                 .toList();
     }
 

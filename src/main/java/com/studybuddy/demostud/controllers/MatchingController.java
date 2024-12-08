@@ -2,6 +2,7 @@ package com.studybuddy.demostud.controllers;
 
 import com.studybuddy.demostud.DTOs.MatchingResultDefault;
 import com.studybuddy.demostud.DTOs.SearchRequest;
+import com.studybuddy.demostud.DTOs.SubDisciplineWithSkillLevelDto;
 import com.studybuddy.demostud.DTOs.UserSearchResponseDto;
 import com.studybuddy.demostud.Service.MatchingService;
 import com.studybuddy.demostud.models.User;
@@ -63,7 +64,7 @@ public class MatchingController {
                     int matchingScore = matchingUser.getMatchingScore(); // Получаем matchingScore
 
                     // Получаем дисциплины пользователя
-                    List<SubDiscipline> disciplines = MatchingService.findSubjectsByUserId(user.getId());
+                    List<SubDisciplineWithSkillLevelDto> disciplines = MatchingService.findSubjectsByUserId(user.getId());
 
                     // Создаем DTO, включая matchingScore
                     return new UserSearchResponseDto(
